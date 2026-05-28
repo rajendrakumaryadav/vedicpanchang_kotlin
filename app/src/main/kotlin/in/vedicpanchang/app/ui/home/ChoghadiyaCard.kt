@@ -66,8 +66,8 @@ fun ChoghadiyaCard(
 
         // Day Choghadiya
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("☀️", fontSize = 14.sp)
-            Spacer(Modifier.width(8.dp))
+//            Text("☀️", fontSize = 14.sp)
+//            Spacer(Modifier.width(8.dp))
             Text(
                 text = strings["day_choghadiya"] ?: "Day Choghadiya",
                 style = AppTextStyles.labelLarge.copy(color = AppColors.Primary, fontSize = 12.sp)
@@ -84,8 +84,8 @@ fun ChoghadiyaCard(
 
         // Night Choghadiya
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("🌙", fontSize = 14.sp)
-            Spacer(Modifier.width(8.dp))
+//            Text("🌙", fontSize = 14.sp)
+//            Spacer(Modifier.width(8.dp))
             Text(
                 text = strings["night_choghadiya"] ?: "Night Choghadiya",
                 style = AppTextStyles.labelLarge.copy(
