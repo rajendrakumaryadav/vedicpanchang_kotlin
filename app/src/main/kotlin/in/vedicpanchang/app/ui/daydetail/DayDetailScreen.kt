@@ -36,6 +36,7 @@ import `in`.vedicpanchang.app.ui.navigation.AppBottomNav
 import `in`.vedicpanchang.app.ui.navigation.NavRoutes
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import `in`.vedicpanchang.app.viewmodel.LocationUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
 import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
 import `in`.vedicpanchang.astronomy.TimeRange
@@ -57,6 +58,7 @@ fun DayDetailScreen(
     val strings by settingsVm.strings.collectAsStateWithLifecycle()
     val locale by settingsVm.locale.collectAsStateWithLifecycle()
     val localizer by settingsVm.panchangLocalizer.collectAsStateWithLifecycle()
+    val panchangState by panchangVm.state.collectAsStateWithLifecycle()
 
     val date = remember(dateString) {
         runCatching {
@@ -66,8 +68,10 @@ fun DayDetailScreen(
     }
 
     var panchang by remember { mutableStateOf<PanchangModel?>(null) }
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(date) { scope.launch { panchang = panchangVm.getPanchangForDate(date) } }
+    val location = (panchangState.location as? LocationUiState.Success)?.location
+    LaunchedEffect(date, location) {
+        panchang = panchangVm.getPanchangForDate(date, location)
+    }
 
     Scaffold(
         topBar = {

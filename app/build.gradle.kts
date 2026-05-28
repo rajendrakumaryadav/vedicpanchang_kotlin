@@ -1,8 +1,24 @@
+import java.io.File
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+}
+
+val keystorePropertiesFile = rootProject.file("keys/key.properties")
+val keystoreProperties = Properties()
+val isReleaseBuild = gradle.startParameter.taskNames.any { taskName ->
+    taskName.contains("release", ignoreCase = true) || taskName.contains("bundle", ignoreCase = true)
+}
+
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
+} else if (isReleaseBuild) {
+    throw GradleException("Missing signing config: ${keystorePropertiesFile.absolutePath}")
 }
 
 android {
@@ -17,11 +33,44 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                val storeFileValue = keystoreProperties.getProperty("storeFile")
+                    ?: throw GradleException("storeFile missing in keys/key.properties")
+                if (storeFileValue.isBlank()) {
+                    throw GradleException("storeFile missing in keys/key.properties")
+                }
+                val resolvedStoreFile = if (File(storeFileValue).isAbsolute) {
+                    File(storeFileValue)
+                } else {
+                    rootProject.file("keys/$storeFileValue")
+                }
+                if (isReleaseBuild && !resolvedStoreFile.exists()) {
+                    throw GradleException("Keystore file not found: ${resolvedStoreFile.absolutePath}")
+                }
+                storeFile = resolvedStoreFile
+                storePassword = keystoreProperties.getProperty("storePassword")
+                    ?: throw GradleException("storePassword missing in keys/key.properties")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                    ?: throw GradleException("keyAlias missing in keys/key.properties")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                    ?: throw GradleException("keyPassword missing in keys/key.properties")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
     }
 
     compileOptions {

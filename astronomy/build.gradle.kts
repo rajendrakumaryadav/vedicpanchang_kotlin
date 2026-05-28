@@ -25,5 +25,8 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        androidUnitTest {
+            dependsOn(commonTest.get())
+        }
     }
 }

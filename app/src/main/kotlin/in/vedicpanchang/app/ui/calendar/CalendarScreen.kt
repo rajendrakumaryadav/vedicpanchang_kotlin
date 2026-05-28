@@ -81,6 +81,7 @@ import `in`.vedicpanchang.app.ui.navigation.NavRoutes
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import `in`.vedicpanchang.app.viewmodel.CalendarViewModel
+import `in`.vedicpanchang.app.viewmodel.LocationUiState
 import `in`.vedicpanchang.app.viewmodel.NotesUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
 import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
@@ -118,6 +119,8 @@ fun CalendarScreen(
     val selectedDate by calendarVm.selectedDate.collectAsStateWithLifecycle()
     val notesState by calendarVm.notesState.collectAsStateWithLifecycle()
     val notesForDay by calendarVm.notesForSelectedDate.collectAsStateWithLifecycle()
+    val panchangState by panchangVm.state.collectAsStateWithLifecycle()
+    val location = (panchangState.location as? LocationUiState.Success)?.location
     val isDark = isSystemInDarkTheme()
     val today = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
     var showAddSheet by remember { mutableStateOf(false) }
@@ -128,7 +131,7 @@ fun CalendarScreen(
 
     val notesByDay = (notesState as? NotesUiState.Success)?.notesByDay ?: emptyMap()
 
-    LaunchedEffect(focusedMonth, focusedYear, viewMode, selectedDate) {
+    LaunchedEffect(focusedMonth, focusedYear, viewMode, selectedDate, location) {
         val dates = when (viewMode) {
             CalendarViewMode.MONTH -> {
                 val daysInMonth = LocalDate(focusedYear, focusedMonth, 1).let {
@@ -150,7 +153,7 @@ fun CalendarScreen(
         }
         val result = mutableMapOf<LocalDate, List<String>>()
         dates.forEach { date ->
-            val p = panchangVm.getPanchangForDate(date)
+            val p = panchangVm.getPanchangForDate(date, location)
             if (p != null && p.festivals.isNotEmpty()) {
                 result[date] = p.festivals
             }
@@ -561,9 +564,10 @@ private fun DaySummaryPanel(
     modifier: Modifier
 ) {
     var panchang by remember(selectedDate) { mutableStateOf<`in`.vedicpanchang.app.data.model.PanchangModel?>(null) }
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(selectedDate) {
-        scope.launch { panchang = panchangVm.getPanchangForDate(selectedDate) }
+    val panchangState by panchangVm.state.collectAsStateWithLifecycle()
+    val location = (panchangState.location as? LocationUiState.Success)?.location
+    LaunchedEffect(selectedDate, location) {
+        panchang = panchangVm.getPanchangForDate(selectedDate, location)
     }
 
     LazyColumn(modifier = modifier.padding(16.dp)) {

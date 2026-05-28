@@ -105,8 +105,13 @@ class HoroscopeViewModel @Inject constructor(
     fun useCurrentLocation() {
         _state.update { it.copy(locationSearch = LocationSearchState.Searching) }
         viewModelScope.launch(Dispatchers.IO) {
-            val location = locationService.getCurrentLocation()
-            _state.update { it.copy(locationSearch = LocationSearchState.Found(location)) }
+            val location = locationService.getCurrentLocationOrNull()
+            _state.update {
+                it.copy(
+                    locationSearch = if (location != null) LocationSearchState.Found(location)
+                                     else LocationSearchState.NotFound
+                )
+            }
         }
     }
 

@@ -21,8 +21,9 @@ import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.navigation.NavRoutes
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import `in`.vedicpanchang.app.viewmodel.LocationUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
-import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.*
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -36,21 +37,20 @@ fun UpcomingEventsCard(
 ) {
     val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     var upcomingEvents by remember { mutableStateOf<List<Pair<Int, PanchangModel>>>(emptyList()) }
-    val scope = rememberCoroutineScope()
+    val panchangState by panchangVm.state.collectAsStateWithLifecycle()
+    val location = (panchangState.location as? LocationUiState.Success)?.location
 
-    LaunchedEffect(today) {
-        scope.launch {
-            val results = mutableListOf<Pair<Int, PanchangModel>>()
-            for (i in 0..30) {
-                val date = today.plus(i, DateTimeUnit.DAY)
-                val p = panchangVm.getPanchangForDate(date)
-                if (p != null && p.festivals.isNotEmpty()) {
-                    results.add(i to p)
-                    if (results.size >= 8) break
-                }
+    LaunchedEffect(today, location) {
+        val results = mutableListOf<Pair<Int, PanchangModel>>()
+        for (i in 0..30) {
+            val date = today.plus(i, DateTimeUnit.DAY)
+            val p = panchangVm.getPanchangForDate(date, location)
+            if (p != null && p.festivals.isNotEmpty()) {
+                results.add(i to p)
+                if (results.size >= 8) break
             }
-            upcomingEvents = results
         }
+        upcomingEvents = results
     }
 
     if (upcomingEvents.isEmpty()) return

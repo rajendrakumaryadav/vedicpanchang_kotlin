@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Vedic Panchang</string>
     <string name="widget_description" translatable="false">Shows today\'s Panchang at a glance — Tithi, Nakshatra, Yoga, Sunrise and Sunset.</string>
-
+    <string name="upcoming_events">Upcoming Events</string>
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_calendar">Calendar</string>

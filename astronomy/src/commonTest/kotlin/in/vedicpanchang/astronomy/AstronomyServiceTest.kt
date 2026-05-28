@@ -4,6 +4,9 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.util.TimeZone
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -16,7 +19,7 @@ class AstronomyServiceTest {
 
     // Reference date: 2025-01-15 at noon IST = 06:30 UTC
     private val REFERENCE_INSTANT = LocalDateTime(2025, 1, 15, 6, 30, 0)
-        .toInstant(TimeZone.UTC)
+        .toInstant(TimeZone.getTimeZone("UTC") as ZoneOffset?)
 
     private val DELHI_LAT = 28.6139
     private val DELHI_LON = 77.2090

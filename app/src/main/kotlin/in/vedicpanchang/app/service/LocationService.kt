@@ -50,6 +50,11 @@ class LocationService @Inject constructor(
 
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): LocationData {
+        return getCurrentLocationOrNull() ?: LocationData.DEFAULT
+    }
+
+    @SuppressLint("MissingPermission")
+    suspend fun getCurrentLocationOrNull(): LocationData? {
         return try {
             val cts = CancellationTokenSource()
             val position = suspendCancellableCoroutine<Location?> { cont ->
@@ -57,7 +62,7 @@ class LocationService @Inject constructor(
                     .addOnSuccessListener { loc: Location? -> cont.resume(loc) }
                     .addOnFailureListener { cont.resume(null) }
                 cont.invokeOnCancellation { cts.cancel() }
-            } ?: return LocationData.DEFAULT
+            } ?: return null
 
             val result = reverseGeocode(position.latitude, position.longitude)
             preferences.saveCachedLocation(
@@ -65,7 +70,7 @@ class LocationService @Inject constructor(
             )
             result
         } catch (_: Exception) {
-            LocationData.DEFAULT
+            null
         }
     }
 

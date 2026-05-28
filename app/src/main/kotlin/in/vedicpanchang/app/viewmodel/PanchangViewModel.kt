@@ -25,6 +25,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlin.math.abs
 import javax.inject.Inject
 
 // ── UI State ──────────────────────────────────────────────────────────────────
@@ -81,34 +82,60 @@ class PanchangViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(location = LocationUiState.Loading) }
             try {
-                // Read cache first (instant); only hit GPS on first-run
+                // Read cache first (instant)
                 val cached = preferences.cachedLocation.first()
-                val location = if (cached != null) {
-                    LocationData(cached.latitude, cached.longitude, cached.city, cached.country)
-                } else {
-                    locationService.getCurrentLocation()
+                val cachedLocation = cached?.let {
+                    LocationData(it.latitude, it.longitude, it.city, it.country)
                 }
-                _state.update { it.copy(location = LocationUiState.Success(location)) }
-                loadTodayPanchang(location)
-                loadSelectedPanchang()
+                if (cachedLocation != null) {
+                    _state.update { it.copy(location = LocationUiState.Success(cachedLocation)) }
+                    loadTodayPanchang(cachedLocation)
+                    loadSelectedPanchang(cachedLocation)
+                }
+
+                // Always attempt a fresh location; update if it differs
+                val currentLocation = locationService.getCurrentLocationOrNull()
+                if (currentLocation != null) {
+                    val shouldUpdate = cachedLocation == null || !isSameLocation(cachedLocation, currentLocation)
+                    if (shouldUpdate) {
+                        _state.update { it.copy(location = LocationUiState.Success(currentLocation)) }
+                        loadTodayPanchang(currentLocation)
+                        loadSelectedPanchang(currentLocation)
+                    }
+                } else if (cachedLocation == null) {
+                    val fallback = LocationData.DEFAULT
+                    _state.update { it.copy(location = LocationUiState.Success(fallback)) }
+                    loadTodayPanchang(fallback)
+                    loadSelectedPanchang(fallback)
+                }
             } catch (e: Exception) {
                 val fallback = LocationData.DEFAULT
                 _state.update { it.copy(location = LocationUiState.Error(e.message ?: "Location failed")) }
                 loadTodayPanchang(fallback)
+                loadSelectedPanchang(fallback)
             }
         }
     }
 
     fun refreshLocation() {
         viewModelScope.launch {
+            val previous = _state.value.location
             _state.update { it.copy(location = LocationUiState.Loading) }
             try {
-                val location = locationService.getCurrentLocation()
-                _state.update { it.copy(location = LocationUiState.Success(location)) }
-                loadTodayPanchang(location)
-                loadSelectedPanchang()
+                val location = locationService.getCurrentLocationOrNull()
+                if (location != null) {
+                    _state.update { it.copy(location = LocationUiState.Success(location)) }
+                    loadTodayPanchang(location)
+                    loadSelectedPanchang(location)
+                } else {
+                    val nextState = if (previous is LocationUiState.Success) previous
+                                    else LocationUiState.Error("Location failed")
+                    _state.update { it.copy(location = nextState) }
+                }
             } catch (e: Exception) {
-                _state.update { it.copy(location = LocationUiState.Error(e.message ?: "Location failed")) }
+                val nextState = if (previous is LocationUiState.Success) previous
+                                else LocationUiState.Error(e.message ?: "Location failed")
+                _state.update { it.copy(location = nextState) }
             }
         }
     }
@@ -175,9 +202,8 @@ class PanchangViewModel @Inject constructor(
         loadSelectedPanchang()
     }
 
-    private fun loadSelectedPanchang() {
-        val locState = _state.value.location
-        val location = if (locState is LocationUiState.Success) locState.location else LocationData.DEFAULT
+    private fun loadSelectedPanchang(locationOverride: LocationData? = null) {
+        val location = locationOverride ?: currentLocation() ?: LocationData.DEFAULT
         val date = _state.value.selectedDate
         viewModelScope.launch(Dispatchers.Default) {
             try {
@@ -195,14 +221,24 @@ class PanchangViewModel @Inject constructor(
      * Compute Panchang for any date without changing the selected date.
      * Used by the calendar to pre-load month data.
      */
-    suspend fun getPanchangForDate(date: LocalDate): PanchangModel? {
-        val locState = _state.value.location
-        val loc = if (locState is LocationUiState.Success) locState.location else LocationData.DEFAULT
+    suspend fun getPanchangForDate(date: LocalDate, locationOverride: LocationData? = null): PanchangModel? {
+        val loc = locationOverride ?: currentLocation() ?: LocationData.DEFAULT
         return withContext(Dispatchers.Default) {
             runCatching {
                 panchangService.calculate(date, loc.latitude, loc.longitude, loc.displayName)
             }.getOrNull()
         }
+    }
+
+    private fun currentLocation(): LocationData? {
+        val locState = _state.value.location
+        return if (locState is LocationUiState.Success) locState.location else null
+    }
+
+    private fun isSameLocation(a: LocationData, b: LocationData): Boolean {
+        val latDiff = abs(a.latitude - b.latitude)
+        val lonDiff = abs(a.longitude - b.longitude)
+        return latDiff < 0.0001 && lonDiff < 0.0001 && a.displayName == b.displayName
     }
 
     // ── Side effects ──────────────────────────────────────────────────────────
