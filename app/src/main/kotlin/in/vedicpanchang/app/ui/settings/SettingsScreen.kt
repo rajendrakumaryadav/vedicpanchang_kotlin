@@ -85,7 +85,7 @@ fun SettingsScreen(
                 }
             )
         },
-        bottomBar = { AppBottomNav(currentRoute = NavRoutes.SETTINGS, navController = navController) }
+        bottomBar = { AppBottomNav(navController = navController) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),

@@ -91,6 +91,11 @@ class PanchangLocalizer(val locale: String) {
         return AppStrings.PLANET_NAMES[locale]?.get(name) ?: name
     }
 
+    // ── Choghadiya ───────────────────────────────────────────────────────────
+
+    fun choghadiyaName(name: String): String =
+        `in`.vedicpanchang.astronomy.ChoghadiyaCalculator.localizeName(name, locale)
+
     // ── Festivals ─────────────────────────────────────────────────────────────
 
     fun festivalName(englishName: String): String {

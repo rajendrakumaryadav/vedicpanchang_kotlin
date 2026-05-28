@@ -129,7 +129,7 @@ private fun ChoghadiyaSlotRow(
         )
         Spacer(Modifier.width(16.dp))
         Text(
-            text = slot.name,
+            text = localizer.choghadiyaName(slot.name),
             style = AppTextStyles.bodyMedium.copy(
                 color = if (isCurrent) Color.White else Color.White.copy(alpha = 0.7f),
                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal

@@ -66,7 +66,7 @@ fun HoroscopeScreen(
                 )
             )
         },
-        bottomBar = { AppBottomNav(currentRoute = NavRoutes.HOROSCOPE, navController = navController) }
+        bottomBar = { AppBottomNav(navController = navController) }
     ) { padding ->
         LazyColumn(
             contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding() + 16.dp)

@@ -37,7 +37,7 @@ fun VedicCalendarCard(
     val kaliYear = shakaYear + 3179
     val vedicMonth = localizer.vedicMonthName(panchang)
     
-    val currentPrahar = remember(panchang) { calculatePrahar(panchang, strings) }
+    val currentPrahar = remember(panchang) { calculatePrahar(panchang, strings, localizer) }
 
     Column(
         modifier = Modifier
@@ -136,7 +136,7 @@ fun GridItem(
     }
 }
 
-private fun calculatePrahar(panchang: PanchangModel, strings: Map<String, String>): String {
+private fun calculatePrahar(panchang: PanchangModel, strings: Map<String, String>, localizer: PanchangLocalizer): String {
     val now = Clock.System.now()
     val sunrise = panchang.sunrise
     val sunset = panchang.sunset
@@ -172,7 +172,7 @@ private fun calculatePrahar(panchang: PanchangModel, strings: Map<String, String
     
     val startT = start.toLocalDateTime(tz)
     val endT = end.toLocalDateTime(tz)
-    val timeRange = "(%02d:%02d – %02d:%02d)".format(startT.hour, startT.minute, endT.hour, endT.minute)
-    
+    val timeRange = localizer.numerals("(%02d:%02d – %02d:%02d)".format(startT.hour, startT.minute, endT.hour, endT.minute))
+
     return "${strings[name.lowercase()] ?: name} $timeRange"
 }

@@ -174,7 +174,11 @@ object AppStrings {
         "choghadiya" to "Choghadiya",
         "day_choghadiya" to "☀️ Day Choghadiya", "night_choghadiya" to "🌙 Night Choghadiya",
         "hora" to "Hora (Planetary Hours)", "current_hora" to "Current Hora", "now_badge" to "NOW",
-        "kali_yuga_year" to "Kali Yuga Year", "prahar_label" to "Current Prahar"
+        "kali_yuga_year" to "Kali Yuga Year", "prahar_label" to "Current Prahar",
+        "purvahna" to "Purvahna", "madhyahna" to "Madhyahna",
+        "aparahna" to "Aparahna", "sayahna" to "Sayahna",
+        "pradosha" to "Pradosha", "nishitha" to "Nishitha",
+        "triyama" to "Triyama", "ushah" to "Ushah"
     )
 
     private val HI: Map<String, String> = mapOf(
@@ -287,7 +291,11 @@ object AppStrings {
         "choghadiya" to "चोघड़िया",
         "day_choghadiya" to "☀️ दिन का चोघड़िया", "night_choghadiya" to "🌙 रात का चोघड़िया",
         "hora" to "होरा (ग्रह काल)", "current_hora" to "वर्तमान होरा", "now_badge" to "अभी",
-        "kali_yuga_year" to "कलियुग वर्ष", "prahar_label" to "प्रहर"
+        "kali_yuga_year" to "कलियुग वर्ष", "prahar_label" to "प्रहर",
+        "purvahna" to "पूर्वाह्न", "madhyahna" to "मध्याह्न",
+        "aparahna" to "अपराह्न", "sayahna" to "सायाह्न",
+        "pradosha" to "प्रदोष", "nishitha" to "निशीथ",
+        "triyama" to "त्रियाम", "ushah" to "उषा"
     )
 
     private val SA: Map<String, String> = mapOf(
@@ -400,6 +408,10 @@ object AppStrings {
         "choghadiya" to "चौघडिया",
         "day_choghadiya" to "☀️ दिवा-चौघडिया", "night_choghadiya" to "🌙 रात्रि-चौघडिया",
         "hora" to "होरा (ग्रहकालः)", "current_hora" to "वर्तमानहोरा", "now_badge" to "इदानीम्",
-        "kali_yuga_year" to "कलियुगवर्षम्", "prahar_label" to "प्रहरः"
+        "kali_yuga_year" to "कलियुगवर्षम्", "prahar_label" to "प्रहरः",
+        "purvahna" to "पूर्वाह्नम्", "madhyahna" to "मध्याह्नम्",
+        "aparahna" to "अपराह्नम्", "sayahna" to "सायाह्नम्",
+        "pradosha" to "प्रदोषः", "nishitha" to "निशीथः",
+        "triyama" to "त्रियामः", "ushah" to "उषाः"
     )
 }

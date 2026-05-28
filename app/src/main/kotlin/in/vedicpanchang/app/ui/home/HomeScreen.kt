@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,12 +53,7 @@ fun HomeScreen(
     val strings by settingsVm.strings.collectAsStateWithLifecycle()
     val locale by settingsVm.locale.collectAsStateWithLifecycle()
     val localizer by settingsVm.panchangLocalizer.collectAsStateWithLifecycle()
-    val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
-
-    val currentRoute by remember(navController) {
-        derivedStateOf { navController.currentDestination?.route ?: NavRoutes.HOME }
-    }
 
     val listState = rememberLazyListState()
     val showStickyHeader by remember {
@@ -86,7 +80,7 @@ fun HomeScreen(
 
     Scaffold(
         bottomBar = {
-            AppBottomNav(currentRoute = NavRoutes.HOME, navController = navController)
+            AppBottomNav(navController = navController)
         },
         containerColor = AppColors.Background
     ) { padding ->

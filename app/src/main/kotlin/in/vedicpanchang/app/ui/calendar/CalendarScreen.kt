@@ -182,7 +182,7 @@ fun CalendarScreen(
             )
         },
         bottomBar = {
-            AppBottomNav(currentRoute = NavRoutes.CALENDAR, navController = navController)
+            AppBottomNav(navController = navController)
         },
     ) { padding ->
         Column(

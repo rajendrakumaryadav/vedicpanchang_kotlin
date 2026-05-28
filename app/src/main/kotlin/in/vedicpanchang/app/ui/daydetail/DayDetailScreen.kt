@@ -116,7 +116,7 @@ fun DayDetailScreen(
             )
         },
         bottomBar = {
-            AppBottomNav(currentRoute = NavRoutes.CALENDAR, navController = navController)
+            AppBottomNav(navController = navController)
         },
         containerColor = AppColors.Background
     ) { padding ->
