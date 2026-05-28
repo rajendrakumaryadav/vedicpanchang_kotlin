@@ -1,6 +1,7 @@
 package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -14,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.vedicpanchang.app.data.model.PanchangModel
@@ -50,26 +52,13 @@ fun HoraCard(
             .padding(16.dp)
     ) {
         Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(strings["hora"] ?: "Hora (Planetary Hours)", style = AppTextStyles.saffronLabel)
-                currentSlot?.let { slot ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(AppColors.Primary.copy(alpha = 0.12f))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            "${strings["current_hora"] ?: "Current"}: ${localizer.planetName(slot.planet)}",
-                            style = AppTextStyles.labelSmall.copy(color = AppColors.Primary, fontSize = 10.sp)
-                        )
-                    }
-                }
+            Text(strings["hora"] ?: "Hora (Planetary Hours)", style = AppTextStyles.saffronLabel)
+
+            currentSlot?.let { slot ->
+                Spacer(Modifier.height(12.dp))
+                CurrentHoraRow(slot = slot, strings = strings, localizer = localizer, isDark = isDark)
             }
+
             Spacer(Modifier.height(12.dp))
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
@@ -86,9 +75,60 @@ fun HoraCard(
 }
 
 @Composable
+private fun CurrentHoraRow(
+    slot: HoraSlot,
+    strings: Map<String, String>,
+    localizer: PanchangLocalizer,
+    isDark: Boolean,
+) {
+    val tz = TimeZone.currentSystemDefault()
+    val startLocal = slot.start.toLocalDateTime(tz)
+    val endLocal = slot.end.toLocalDateTime(tz)
+    val timeRange = localizer.numerals(
+        "%02d:%02d – %02d:%02d".format(startLocal.hour, startLocal.minute, endLocal.hour, endLocal.minute)
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (isDark) AppColors.SurfaceVariant else AppColors.SurfaceVariantLight)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(slot.symbol, style = AppTextStyles.bodySmall.copy(fontSize = 22.sp))
+        Spacer(Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                strings["current_hora"] ?: "Current Hora",
+                style = AppTextStyles.labelSmall.copy(color = AppColors.Primary, fontSize = 10.sp)
+            )
+            Text(
+                localizer.planetName(slot.planet),
+                style = AppTextStyles.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .border(1.dp, AppColors.Primary, RoundedCornerShape(8.dp))
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+        ) {
+            Text(
+                timeRange,
+                style = AppTextStyles.timeSmall.copy(color = AppColors.Primary, fontSize = 12.sp)
+            )
+        }
+    }
+}
+
+@Composable
 private fun HoraSlotCell(slot: HoraSlot, isCurrent: Boolean, localizer: PanchangLocalizer, isDark: Boolean) {
     val tz = TimeZone.currentSystemDefault()
     val startLocal = slot.start.toLocalDateTime(tz)
+    val endLocal = slot.end.toLocalDateTime(tz)
+    val timeRange = localizer.numerals(
+        "%02d:%02d – %02d:%02d".format(startLocal.hour, startLocal.minute, endLocal.hour, endLocal.minute)
+    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,25 +140,24 @@ private fun HoraSlotCell(slot: HoraSlot, isCurrent: Boolean, localizer: Panchang
                     else      -> AppColors.SurfaceVariantLight
                 }
             )
-            .padding(horizontal = 6.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                localizer.planetName(slot.planet),
-                style = AppTextStyles.bodySmall.copy(
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    color = if (isCurrent) AppColors.Primary else MaterialTheme.colorScheme.onSurface,
-                    fontSize = 12.sp
+        Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(slot.symbol, style = AppTextStyles.bodySmall.copy(fontSize = 16.sp))
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    localizer.planetName(slot.planet),
+                    style = AppTextStyles.bodySmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = if (isCurrent) AppColors.Primary else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 12.sp
+                    )
                 )
-            )
-            Text(
-                localizer.numerals("%02d:%02d".format(startLocal.hour, startLocal.minute)),
-                style = AppTextStyles.timeSmall.copy(fontSize = 10.sp)
-            )
-            if (isCurrent) {
-                Text("NOW", style = AppTextStyles.labelSmall.copy(color = AppColors.Primary, fontSize = 8.sp))
             }
+            Spacer(Modifier.height(2.dp))
+            Text(timeRange, style = AppTextStyles.timeSmall.copy(fontSize = 9.sp))
         }
     }
 }

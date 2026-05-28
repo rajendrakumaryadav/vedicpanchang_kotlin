@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,8 @@ import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.home.SunMoonCard
 import `in`.vedicpanchang.app.ui.home.TodayPanchangCard
+import `in`.vedicpanchang.app.ui.navigation.AppBottomNav
+import `in`.vedicpanchang.app.ui.navigation.NavRoutes
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
@@ -38,6 +41,7 @@ import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
 import `in`.vedicpanchang.astronomy.TimeRange
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
+import kotlinx.datetime.LocalDateTime
 import kotlin.time.Clock
 import java.text.SimpleDateFormat
 import java.util.Locale as JavaLocale
@@ -79,7 +83,26 @@ fun DayDetailScreen(
                         val dateStr = localizer.numerals(
                             SimpleDateFormat("d MMM yyyy", javaLocale).format(cal.time)
                         )
-                        Text("$vaarName, $dateStr")
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = Color(0xFFE53935),
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(Modifier.width(3.dp))
+                                Text(
+                                    text = p.locationName,
+                                    style = AppTextStyles.bodySmall.copy(
+                                        color = AppColors.TextSecondary, fontSize = 11.sp
+                                    ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Text("$vaarName, $dateStr")
+                        }
                     } else {
                         Text(date.toString())
                     }
@@ -91,6 +114,9 @@ fun DayDetailScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.Background)
             )
+        },
+        bottomBar = {
+            AppBottomNav(currentRoute = NavRoutes.CALENDAR, navController = navController)
         },
         containerColor = AppColors.Background
     ) { padding ->
@@ -110,20 +136,6 @@ fun DayDetailScreen(
                 }
                 // 2. Vedic Calendar Section
                 item { VedicCalendarSection(panchang = p, strings = strings, localizer = localizer) }
-                // 3. Panchang Card
-                item {
-                    TodayPanchangCard(
-                        panchang = p, livePanchang = p,
-                        strings = strings, localizer = localizer, locale = locale
-                    )
-                }
-                // 4. Sun & Moon Card
-                item {
-                    SunMoonCard(
-                        panchang = p, liveNow = Clock.System.now(),
-                        strings = strings, locale = locale
-                    )
-                }
                 // 5. Auspicious Periods
                 item { AuspiciousMuhurtasCard(panchang = p, strings = strings, localizer = localizer) }
                 // 6. Inauspicious Periods
@@ -210,7 +222,7 @@ private fun VedicCalendarSection(
             text = strings["vedic_calendar"] ?: "Vedic Calendar",
             style = AppTextStyles.saffronLabel.copy(fontSize = 14.sp)
         )
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(16.dp))
 
         VedicCalRow(icon = "🗓️", label = strings["vedic_month"] ?: "Vedic Month",   value = vedicMonth,  labelColor = labelColor, valueColor = valueColor)
         HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = dividerColor, thickness = 0.5.dp)
@@ -292,16 +304,16 @@ private fun AuspiciousMuhurtasCard(
             text = strings["auspicious_periods"] ?: "Auspicious Periods",
             style = AppTextStyles.saffronLabel.copy(fontSize = 14.sp)
         )
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(16.dp))
         MuhurtaRow(icon = "🙏", name = strings["brahma_muhurta"] ?: "Brahma Muhurta",   desc = strings["best_meditation"] ?: "Best for meditation & prayer",        range = panchang.brahmaMuhurta,  barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(14.dp))
         MuhurtaRow(icon = "⚡", name = strings["abhijit_muhurta"] ?: "Abhijit Muhurta", desc = strings["best_beginnings"] ?: "Best for new beginnings",             range = panchang.abhijitMuhurta, barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
         if (vijaya != null) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
             MuhurtaRow(icon = "🏆", name = strings["vijaya_muhurta"] ?: "Vijaya Muhurta",   desc = strings["vijaya_note"] ?: "Best for success and winning efforts", range = vijaya,                  barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
         }
         if (godhuli != null) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
             MuhurtaRow(icon = "🐄", name = strings["godhuli_muhurta"] ?: "Godhuli Muhurta",  desc = strings["godhuli_note"] ?: "Auspicious twilight window",         range = godhuli,                 barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
         }
     }
@@ -329,11 +341,11 @@ private fun InauspiciousPeriodsCard(
             text = strings["inauspicious_periods"] ?: "Inauspicious Periods",
             style = AppTextStyles.saffronLabel.copy(fontSize = 14.sp)
         )
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(16.dp))
         MuhurtaRow(icon = "⚠️", name = strings["rahu_kaal"] ?: "Rahu Kaal",     desc = strings["avoid_auspicious"] ?: "Avoid auspicious activities", range = panchang.rahuKaal,   barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(14.dp))
         MuhurtaRow(icon = "💀", name = strings["yamaganda"] ?: "Yamaganda",     desc = strings["period_yama"] ?: "Period of Yama — inauspicious",    range = panchang.yamaganda,  barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(14.dp))
         MuhurtaRow(icon = "🪐", name = strings["gulika_kaal"] ?: "Gulika Kaal", desc = strings["saturn_period"] ?: "Saturn's inauspicious period",   range = panchang.gulikaKaal, barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark)
     }
 }
@@ -358,8 +370,8 @@ private fun MuhurtaRow(
     val timeStr = localizer.numerals(
         if (sameDay) "%02d:%02d – %02d:%02d".format(s.hour, s.minute, e.hour, e.minute)
         else "%d %s, %02d:%02d – %d %s, %02d:%02d".format(
-            s.dayOfMonth, s.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, s.hour, s.minute,
-            e.dayOfMonth, e.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, e.hour, e.minute
+            s.day, s.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, s.hour, s.minute,
+            e.day, e.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, e.hour, e.minute
         )
     )
     val textPrimary = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
@@ -385,7 +397,7 @@ private fun MuhurtaRow(
                     )
                 )
             }
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(4.dp))
             Text(desc, style = AppTextStyles.bodySmall.copy(color = textSecondary, fontSize = 11.sp))
         }
         Spacer(Modifier.width(8.dp))
@@ -452,7 +464,7 @@ private fun DaytimeMuhurtasCard(
                 Spacer(Modifier.height(12.dp))
 
                 muhurtas.chunked(2).forEachIndexed { rowIdx, pair ->
-                    if (rowIdx > 0) Spacer(Modifier.height(8.dp))
+                    if (rowIdx > 0) Spacer(Modifier.height(10.dp))
                     Row(modifier = Modifier.fillMaxWidth()) {
                         pair.forEachIndexed { colIdx, muhurta ->
                             val globalIdx = rowIdx * 2 + colIdx
@@ -513,7 +525,7 @@ private fun DaytimeMuhurtaCell(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             Text(timeStr, style = AppTextStyles.timeSmall.copy(fontSize = 11.sp))
         }
     }

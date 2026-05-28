@@ -65,7 +65,7 @@ fun TodayPanchangCard(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Actual Tithi banner
             ActualTithiRow(
@@ -77,7 +77,7 @@ fun TodayPanchangCard(
                 isDark = isDark
             )
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(20.dp))
 
             // 2×2 Panchang grid
             Row(Modifier.fillMaxWidth()) {
@@ -104,7 +104,7 @@ fun TodayPanchangCard(
                 )
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(20.dp))
 
             Row(Modifier.fillMaxWidth()) {
                 PanchangElement(
@@ -133,7 +133,7 @@ fun TodayPanchangCard(
                 )
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(18.dp))
 
             // Vaar row
             Row(
@@ -256,11 +256,13 @@ fun PanchangElement(
             Spacer(Modifier.width(4.dp))
             Text(label, style = AppTextStyles.labelSmall.copy(color = labelColor), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(6.dp))
         Text(value, style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = valueColor), maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (subvalue != null) {
+            Spacer(Modifier.height(2.dp))
             Text(subvalue, style = AppTextStyles.bodySmall.copy(color = resolvedSubColor, fontSize = 11.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+        Spacer(Modifier.height(2.dp))
         Text(localizer.numerals(timeStr), style = AppTextStyles.timeSmall.copy(fontSize = 11.sp, color = rangeColor))
     }
 }

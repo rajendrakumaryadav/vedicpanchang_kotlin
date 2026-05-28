@@ -1,9 +1,19 @@
 package `in`.vedicpanchang.app.ui.calendar
 
 import android.app.TimePickerDialog
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +41,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,7 +67,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
+import kotlin.math.abs
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -86,9 +97,12 @@ import java.text.SimpleDateFormat
 import java.time.ZoneId
 import java.util.Locale
 import kotlin.time.Clock
+import kotlin.time.Instant
 import java.time.LocalDateTime as JavaLocalDateTime
 
-private enum class CalendarViewMode { MONTH, WEEK }
+private enum class CalendarViewMode { MONTH, BIWEEK, WEEK }
+
+private data class CalendarKey(val mode: CalendarViewMode, val month: Month, val year: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,6 +136,11 @@ fun CalendarScreen(
                     (next.toEpochDays() - it.toEpochDays()).toInt()
                 }
                 (1..daysInMonth).map { day -> LocalDate(focusedYear, focusedMonth, day) }
+            }
+            CalendarViewMode.BIWEEK -> {
+                val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
+                val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
+                (0..13).map { weekStart.plus(it, DateTimeUnit.DAY) }
             }
             CalendarViewMode.WEEK -> {
                 val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
@@ -165,14 +184,6 @@ fun CalendarScreen(
         bottomBar = {
             AppBottomNav(currentRoute = NavRoutes.CALENDAR, navController = navController)
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddSheet = true },
-                containerColor = AppColors.Primary
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White)
-            }
-        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -209,7 +220,11 @@ fun CalendarScreen(
                     }
                 },
                 onToggleView = {
-                    viewMode = if (viewMode == CalendarViewMode.MONTH) CalendarViewMode.WEEK else CalendarViewMode.MONTH
+                    viewMode = when (viewMode) {
+                        CalendarViewMode.MONTH  -> CalendarViewMode.BIWEEK
+                        CalendarViewMode.BIWEEK -> CalendarViewMode.WEEK
+                        CalendarViewMode.WEEK   -> CalendarViewMode.MONTH
+                    }
                     focusedMonth = selectedDate.month
                     focusedYear = selectedDate.year
                 }
@@ -228,6 +243,40 @@ fun CalendarScreen(
                     calendarVm.selectDate(date)
                     focusedMonth = date.month
                     focusedYear = date.year
+                },
+                onSwipeLeft = {
+                    if (viewMode == CalendarViewMode.MONTH) {
+                        val next = LocalDate(focusedYear, focusedMonth, 1).plus(1, DateTimeUnit.MONTH)
+                        focusedMonth = next.month; focusedYear = next.year
+                    } else {
+                        val next = selectedDate.plus(7, DateTimeUnit.DAY)
+                        calendarVm.selectDate(next); focusedMonth = next.month; focusedYear = next.year
+                    }
+                },
+                onSwipeRight = {
+                    if (viewMode == CalendarViewMode.MONTH) {
+                        val prev = LocalDate(focusedYear, focusedMonth, 1).minus(1, DateTimeUnit.MONTH)
+                        focusedMonth = prev.month; focusedYear = prev.year
+                    } else {
+                        val prev = selectedDate.minus(7, DateTimeUnit.DAY)
+                        calendarVm.selectDate(prev); focusedMonth = prev.month; focusedYear = prev.year
+                    }
+                },
+                onSwipeUp = {
+                    viewMode = when (viewMode) {
+                        CalendarViewMode.MONTH  -> CalendarViewMode.BIWEEK
+                        CalendarViewMode.BIWEEK -> CalendarViewMode.WEEK
+                        CalendarViewMode.WEEK   -> CalendarViewMode.WEEK
+                    }
+                    focusedMonth = selectedDate.month; focusedYear = selectedDate.year
+                },
+                onSwipeDown = {
+                    viewMode = when (viewMode) {
+                        CalendarViewMode.WEEK   -> CalendarViewMode.BIWEEK
+                        CalendarViewMode.BIWEEK -> CalendarViewMode.MONTH
+                        CalendarViewMode.MONTH  -> CalendarViewMode.MONTH
+                    }
+                    focusedMonth = selectedDate.month; focusedYear = selectedDate.year
                 }
             )
 
@@ -242,9 +291,10 @@ fun CalendarScreen(
                 localizer = localizer,
                 locale = locale,
                 onDeleteNote = { note -> calendarVm.deleteNote(note) },
+                onAddNote = { showAddSheet = true },
                 onViewDetails = {
                     navController.navigate(
-                                    NavRoutes.dayDetail("%04d-%02d-%02d".format(selectedDate.year, selectedDate.month.ordinal + 1, selectedDate.day))
+                        NavRoutes.dayDetail("%04d-%02d-%02d".format(selectedDate.year, selectedDate.month.ordinal + 1, selectedDate.day))
                     )
                 },
                 modifier = Modifier.weight(1f)
@@ -283,14 +333,23 @@ private fun MonthNavigator(
         IconButton(onClick = onPrev) { Text("<", style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)) }
         Text(fmt.format(cal.time), style = AppTextStyles.displaySmall)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onNext) { Text(">", style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)) }
-            IconButton(onClick = onToggleView) {
-                Icon(
-                    if (viewMode == CalendarViewMode.MONTH) Icons.Outlined.ViewWeek else Icons.Outlined.CalendarViewMonth,
-                    contentDescription = null,
-                    tint = AppColors.Primary
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .border(1.5.dp, AppColors.Primary, RoundedCornerShape(20.dp))
+                    .clickable { onToggleView() }
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = when (viewMode) {
+                        CalendarViewMode.MONTH  -> "Month"
+                        CalendarViewMode.BIWEEK -> "2 weeks"
+                        CalendarViewMode.WEEK   -> "1 week"
+                    },
+                    style = AppTextStyles.labelSmall.copy(color = AppColors.Primary)
                 )
             }
+            IconButton(onClick = onNext) { Text(">", style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)) }
         }
     }
 }
@@ -301,7 +360,11 @@ private fun MonthCalendarGrid(
     notesByDay: Map<LocalDate, List<CustomCalendarNote>>,
     festivalsByDay: Map<LocalDate, List<String>>,
     viewMode: CalendarViewMode,
-    onDaySelected: (LocalDate) -> Unit
+    onDaySelected: (LocalDate) -> Unit,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit,
+    onSwipeUp: () -> Unit,
+    onSwipeDown: () -> Unit,
 ) {
     val weekDayLabels = listOf("M","T","W","T","F","S","S")
 
@@ -353,43 +416,131 @@ private fun MonthCalendarGrid(
         }
     }
 
-    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+    // Build the animated key: month-mode uses focusedMonth/Year; week modes anchor to selectedDate
+    val animKey = when (viewMode) {
+        CalendarViewMode.MONTH -> CalendarKey(viewMode, month, year)
+        else                   -> CalendarKey(viewMode, selectedDate.month, selectedDate.year)
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .pointerInput(onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown) {
+                var dragX = 0f
+                var dragY = 0f
+                detectDragGestures(
+                    onDragStart = { dragX = 0f; dragY = 0f },
+                    onDrag = { change, amount ->
+                        change.consume()
+                        dragX += amount.x
+                        dragY += amount.y
+                    },
+                    onDragEnd = {
+                        val threshold = 40f
+                        if (abs(dragX) > abs(dragY)) {
+                            when {
+                                dragX < -threshold -> onSwipeLeft()
+                                dragX > threshold  -> onSwipeRight()
+                            }
+                        } else {
+                            when {
+                                dragY < -threshold -> onSwipeUp()
+                                dragY > threshold  -> onSwipeDown()
+                            }
+                        }
+                    }
+                )
+            }
+    ) {
+        // Weekday header — always static
         Row(Modifier.fillMaxWidth()) {
             weekDayLabels.forEach { label ->
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text(label, style = AppTextStyles.labelSmall.copy(color = if (label == "S") AppColors.Primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)))
+                    Text(
+                        label,
+                        style = AppTextStyles.labelSmall.copy(
+                            color = if (label == "S") AppColors.Primary
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    )
                 }
             }
         }
         Spacer(Modifier.height(4.dp))
-        if (viewMode == CalendarViewMode.MONTH) {
-            val daysInMonth = LocalDate(year, month, 1).let {
-                val next = it.plus(1, DateTimeUnit.MONTH)
-                (next.toEpochDays() - it.toEpochDays()).toInt()
-            }
-            val firstDayOfMonth = LocalDate(year, month, 1)
-            val startOffset = (firstDayOfMonth.dayOfWeek.isoDayNumber - 1) // Mon=0
-            val totalCells = startOffset + daysInMonth
-            val rows = (totalCells + 6) / 7
-            for (row in 0 until rows) {
-                Row(Modifier.fillMaxWidth()) {
-                    for (col in 0..6) {
-                        val cellIndex = row * 7 + col
-                        val day = cellIndex - startOffset + 1
-                        if (day < 1 || day > daysInMonth) {
-                            Box(Modifier.weight(1f).aspectRatio(1f))
-                        } else {
-                            DayCell(LocalDate(year, month, day), col, Modifier.weight(1f))
+
+        // Animated grid rows
+        AnimatedContent(
+            targetState = animKey,
+            transitionSpec = {
+                val modeChanged = targetState.mode != initialState.mode
+                if (modeChanged) {
+                    // Vertical: swipe up collapses (more→fewer rows), swipe down expands
+                    val collapsing = targetState.mode.ordinal > initialState.mode.ordinal
+                    if (collapsing) {
+                        (slideInVertically { -it / 3 } + fadeIn()) togetherWith
+                        (slideOutVertically { it / 3 } + fadeOut())
+                    } else {
+                        (slideInVertically { it / 3 } + fadeIn()) togetherWith
+                        (slideOutVertically { -it / 3 } + fadeOut())
+                    }
+                } else {
+                    // Horizontal: forward = swipe left = next month
+                    val forward = targetState.year * 12 + targetState.month.ordinal >
+                                  initialState.year * 12 + initialState.month.ordinal
+                    if (forward) {
+                        (slideInHorizontally { it } + fadeIn()) togetherWith
+                        (slideOutHorizontally { -it } + fadeOut())
+                    } else {
+                        (slideInHorizontally { -it } + fadeIn()) togetherWith
+                        (slideOutHorizontally { it } + fadeOut())
+                    }
+                }.using(SizeTransform(clip = true))
+            },
+            label = "CalendarGrid"
+        ) { key ->
+            Column {
+                when (key.mode) {
+                    CalendarViewMode.MONTH -> {
+                        val daysInMonth = LocalDate(key.year, key.month, 1).let {
+                            val next = it.plus(1, DateTimeUnit.MONTH)
+                            (next.toEpochDays() - it.toEpochDays()).toInt()
+                        }
+                        val firstDay = LocalDate(key.year, key.month, 1)
+                        val startOffset = firstDay.dayOfWeek.isoDayNumber - 1
+                        val rows = (startOffset + daysInMonth + 6) / 7
+                        for (row in 0 until rows) {
+                            Row(Modifier.fillMaxWidth()) {
+                                for (col in 0..6) {
+                                    val day = row * 7 + col - startOffset + 1
+                                    if (day < 1 || day > daysInMonth) {
+                                        Box(Modifier.weight(1f).aspectRatio(1f))
+                                    } else {
+                                        DayCell(LocalDate(key.year, key.month, day), col, Modifier.weight(1f))
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-            }
-        } else {
-            val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
-            val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
-            Row(Modifier.fillMaxWidth()) {
-                for (col in 0..6) {
-                    DayCell(weekStart.plus(col, DateTimeUnit.DAY), col, Modifier.weight(1f))
+                    CalendarViewMode.BIWEEK -> {
+                        val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
+                        val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
+                        for (weekOffset in 0..1) {
+                            Row(Modifier.fillMaxWidth()) {
+                                for (col in 0..6) {
+                                    DayCell(weekStart.plus(weekOffset * 7 + col, DateTimeUnit.DAY), col, Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                    CalendarViewMode.WEEK -> {
+                        val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
+                        val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
+                        Row(Modifier.fillMaxWidth()) {
+                            for (col in 0..6) {
+                                DayCell(weekStart.plus(col, DateTimeUnit.DAY), col, Modifier.weight(1f))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -405,6 +556,7 @@ private fun DaySummaryPanel(
     localizer: `in`.vedicpanchang.app.l10n.PanchangLocalizer,
     locale: String,
     onDeleteNote: (CustomCalendarNote) -> Unit,
+    onAddNote: () -> Unit,
     onViewDetails: () -> Unit,
     modifier: Modifier
 ) {
@@ -443,7 +595,8 @@ private fun DaySummaryPanel(
             NotesSection(
                 notes = notes,
                 strings = strings,
-                onDelete = onDeleteNote
+                onDelete = onDeleteNote,
+                onAdd = onAddNote
             )
         }
     }
@@ -486,18 +639,54 @@ private fun PanchangSummaryRows(
 private fun NotesSection(
     notes: List<CustomCalendarNote>,
     strings: Map<String, String>,
-    onDelete: (CustomCalendarNote) -> Unit
+    onDelete: (CustomCalendarNote) -> Unit,
+    onAdd: () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-            .background(AppColors.CustomNote.copy(alpha = 0.08f))
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, AppColors.CustomNote.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+            .background(AppColors.CustomNote.copy(alpha = 0.06f))
             .padding(12.dp)
     ) {
         Column {
-            Text(strings["my_notes"] ?: "My Notes", style = AppTextStyles.labelLarge.copy(color = AppColors.CustomNote))
-            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    strings["my_notes"] ?: "My Notes",
+                    style = AppTextStyles.labelLarge.copy(color = AppColors.CustomNote)
+                )
+                Row(
+                    modifier = Modifier.clickable { onAdd() },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = null,
+                        tint = AppColors.CustomNote,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, AppColors.CustomNote, CircleShape)
+                            .padding(2.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        strings["add_note"] ?: "नोट जोड़ें",
+                        style = AppTextStyles.labelSmall.copy(color = AppColors.CustomNote)
+                    )
+                }
+            }
+            Spacer(Modifier.height(10.dp))
             if (notes.isEmpty()) {
-                Text(strings["no_notes_for_day"] ?: "No notes", style = AppTextStyles.bodySmall)
+                Text(
+                    strings["no_notes_for_day"] ?: "इस दिन के लिए कोई कस्टम नोट नहीं",
+                    style = AppTextStyles.bodySmall
+                )
             } else {
                 notes.forEach { note ->
                     Row(
@@ -624,7 +813,7 @@ private fun AddNoteSheet(
                                 reminderHour,
                                 reminderMinute
                             )
-                            kotlinx.datetime.Instant.fromEpochMilliseconds(
+                            Instant.fromEpochMilliseconds(
                                 localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                             )
                         } else {
