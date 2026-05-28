@@ -19,14 +19,13 @@ import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import androidx.compose.ui.graphics.luminance
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
-
+import kotlin.time.Instant
 @Composable
 fun SunMoonCard(
     panchang: PanchangModel,
@@ -39,7 +38,12 @@ fun SunMoonCard(
     val sunProgress = calculateProgress(panchang.sunrise, panchang.sunset, liveNow)
     val moonProgress = calculateProgress(panchang.moonrise, panchang.moonset, liveNow)
     val isDay = liveNow > panchang.sunrise && liveNow < panchang.sunset
-    val isMoonVisible = isMoonVisible(panchang.moonrise, panchang.moonset, liveNow)
+    // isMoonVisible handles both the normal case (moonrise→moonset same day) and the
+    // overnight case (moonset early morning < moonrise evening).
+    // Extra pre-dawn guard: if today's moonset is in the early morning (before sunrise)
+    // and we're before that moonset, the moon from yesterday's cycle is still up.
+    val isMoonVisible = isMoonVisible(panchang.moonrise, panchang.moonset, liveNow) ||
+        (panchang.moonset < panchang.sunrise && liveNow < panchang.moonset)
 
     Box(
         modifier = Modifier
@@ -82,10 +86,13 @@ fun SunMoonCard(
                 ) {
                     androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
                         drawCelestialArc(isDark)
-                        if (isDay)  drawCelestialDot(sunProgress,  AppColors.SunColor, 12f)
-                        if (isMoonVisible) drawCelestialDot(moonProgress, if (isDark) AppColors.MoonColor else AppColors.TextSecondaryLight, 9f)
+                        val moonDotColor = if (isDark) AppColors.MoonColor else Color(0xFF607D8B)
+                        drawCelestialDot(sunProgress,  AppColors.SunColor, 12f, if (isDay) 1f else 0.45f, !isDay)
+                        drawCelestialDot(moonProgress, moonDotColor,        9f,  if (isMoonVisible) 1f else 0.50f, !isMoonVisible)
                     }
                     // HUD: remaining time
+                    val sunToRise = if (liveNow < panchang.sunrise) panchang.sunrise.toEpochMilliseconds() - liveNow.toEpochMilliseconds() else Long.MAX_VALUE
+                    val moonToRise = if (!isMoonVisible) { val t = panchang.moonrise.toEpochMilliseconds() - liveNow.toEpochMilliseconds(); if (t > 0) t else Long.MAX_VALUE } else Long.MAX_VALUE
                     Column(
                         modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -93,9 +100,11 @@ fun SunMoonCard(
                         SunMoonHud(
                             label = strings["sun_short"] ?: "SUN",
                             color = AppColors.SunColor,
-                            remaining = if (isDay) (panchang.sunset.toEpochMilliseconds() - liveNow.toEpochMilliseconds()).coerceAtLeast(0)
-                            else if (liveNow < panchang.sunrise) (panchang.sunrise.toEpochMilliseconds() - liveNow.toEpochMilliseconds()).coerceAtLeast(0)
-                            else null,
+                            remaining = if (isDay) {
+                                (panchang.sunset.toEpochMilliseconds() - liveNow.toEpochMilliseconds()).coerceAtLeast(0)
+                            } else if (sunToRise <= 7_200_000L) {
+                                sunToRise.coerceAtLeast(0)
+                            } else null,
                             isLeft = isDay,
                             strings = strings,
                             locale = locale,
@@ -104,10 +113,12 @@ fun SunMoonCard(
                         Spacer(Modifier.height(4.dp))
                         SunMoonHud(
                             label = strings["moon_short"] ?: "MOON",
-                            color = if (isDark) AppColors.MoonColor else AppColors.TextSecondaryLight,
+                            color = if (isDark) AppColors.MoonColor else Color(0xFF607D8B),
                             remaining = if (isMoonVisible) {
                                 val moonEnd = panchang.moonset.toEpochMilliseconds()
                                 if (moonEnd > liveNow.toEpochMilliseconds()) (moonEnd - liveNow.toEpochMilliseconds()).coerceAtLeast(0) else null
+                            } else if (moonToRise <= 7_200_000L) {
+                                moonToRise.coerceAtLeast(0)
                             } else null,
                             isLeft = isMoonVisible,
                             strings = strings,
@@ -122,11 +133,11 @@ fun SunMoonCard(
                     topIcon = "🌙",
                     topLabel = strings["moonrise"] ?: "Moonrise",
                     topTime = panchang.moonrise,
-                    topColor = if (isDark) AppColors.MoonColor else AppColors.TextSecondaryLight,
+                    topColor = if (isDark) AppColors.MoonColor else Color(0xFF607D8B),
                     bottomIcon = "🌛",
                     bottomLabel = strings["moonset"] ?: "Moonset",
                     bottomTime = panchang.moonset,
-                    bottomColor = if (isDark) AppColors.TextMuted else AppColors.TextSecondaryLight,
+                    bottomColor = if (isDark) AppColors.TextMuted else Color(0xFF607D8B),
                     alignEnd = true
                 )
             }
@@ -211,7 +222,7 @@ private fun isMoonVisible(rise: Instant, set: Instant, now: Instant): Boolean {
     val r = rise.toEpochMilliseconds()
     val s = set.toEpochMilliseconds()
     val n = now.toEpochMilliseconds()
-    return if (s > r) n in r..s else n > r || n < s
+    return if (s > r) n in r..s else n !in s..r
 }
 
 private fun DrawScope.drawCelestialArc(isDark: Boolean) {
@@ -235,21 +246,16 @@ private fun DrawScope.drawCelestialArc(isDark: Boolean) {
     )
 }
 
-private fun DrawScope.drawCelestialDot(progress: Float, color: Color, radiusDp: Float) {
+private fun DrawScope.drawCelestialDot(progress: Float, color: Color, radiusDp: Float, alpha: Float = 1f, belowHorizon: Boolean = false) {
     val centerX = size.width / 2f
     val centerY = size.height / 2f + 30f
     val arcRadius = max(24f, min(size.width / 2f - 20f, size.height - 48f))
     val angle = Math.PI - (progress * Math.PI)
     val dx = (arcRadius * cos(angle)).toFloat()
-    val dy = (-arcRadius * sin(angle)).toFloat()
-    drawCircle(
-        color = color.copy(alpha = 0.4f),
-        radius = radiusDp * 2,
-        center = Offset(centerX + dx, centerY + dy)
-    )
-    drawCircle(
-        color = color,
-        radius = radiusDp.dp.toPx(),
-        center = Offset(centerX + dx, centerY + dy)
-    )
+    // Below-horizon bodies sit just under the chord so they remain visible and
+    // don't overlap with in-sky bodies that happen to share the same arc edge.
+    val dy = if (belowHorizon) 14.dp.toPx() else (-arcRadius * sin(angle)).toFloat()
+    val bodyRadius = radiusDp.dp.toPx()
+    drawCircle(color.copy(alpha = 0.35f * alpha), bodyRadius * 2f, Offset(centerX + dx, centerY + dy))
+    drawCircle(color.copy(alpha = alpha),          bodyRadius,      Offset(centerX + dx, centerY + dy))
 }
