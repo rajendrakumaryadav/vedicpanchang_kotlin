@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vedic Panchang</string>
+    <string name="widget_description" translatable="false">Shows today\'s Panchang at a glance — Tithi, Nakshatra, Yoga, Sunrise and Sunset.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_horoscope">Kundali</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- General -->
+    <string name="calendar">Calendar</string>
+    <string name="today">TODAY</string>
+    <string name="tomorrow">TOMORROW</string>
+    <string name="panchang">Panchang</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+    <string name="tithi">Tithi</string>
+    <string name="nakshatra">Nakshatra</string>
+    <string name="yoga">Yoga</string>
+    <string name="karana">Karana</string>
+    <string name="rahu_kaal">Rahu Kaal</string>
+    <string name="full_details">Full Details →</string>
+
+    <!-- Notes -->
+    <string name="my_notes">My Notes</string>
+    <string name="add_note">Add Note</string>
+    <string name="add_note_for_date">Add Note for Selected Date</string>
+    <string name="note_title">Note Title</string>
+    <string name="note_details">Note Details (Optional)</string>
+    <string name="enable_notification">Enable Notification</string>
+    <string name="reminder_time">Reminder Time</string>
+    <string name="save_note">Save Note</string>
+    <string name="delete_note">Delete Note</string>
+    <string name="no_notes_for_day">No custom notes for this day</string>
+</resources>

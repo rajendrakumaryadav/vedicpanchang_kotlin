@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="18dp" />
+    <!-- Premium gradient: darker saffron base with gold accent -->
+    <gradient
+        android:startColor="#FFD4844A"
+        android:endColor="#FFFF9800"
+        android:angle="135" />
+    <!-- Prominent border for clear edge definition -->
+    <stroke
+        android:width="2dp"
+        android:color="#FFFFD700" />
+
+</shape>

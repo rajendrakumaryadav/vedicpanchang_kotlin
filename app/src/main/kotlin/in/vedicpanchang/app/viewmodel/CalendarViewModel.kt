@@ -1,0 +1,188 @@
+package `in`.vedicpanchang.app.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import `in`.vedicpanchang.app.data.datasource.AppPreferences
+import `in`.vedicpanchang.app.data.datasource.db.NoteDao
+import `in`.vedicpanchang.app.data.datasource.db.toDomain
+import `in`.vedicpanchang.app.data.datasource.db.toEntity
+import `in`.vedicpanchang.app.data.model.CustomCalendarNote
+import `in`.vedicpanchang.app.service.NotificationService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDate
+import kotlinx.datetime.toLocalDateTime
+import javax.inject.Inject
+
+// ── Result types ──────────────────────────────────────────────────────────────
+
+enum class AddNoteResult { SAVED, SAVED_WITHOUT_NOTIFICATION, ERROR }
+
+// ── UI events (one-shot) ──────────────────────────────────────────────────────
+
+sealed interface CalendarEvent {
+    data class NoteAdded(val result: AddNoteResult) : CalendarEvent
+    data class NoteDeleted(val success: Boolean) : CalendarEvent
+    data class Error(val message: String) : CalendarEvent
+}
+
+// ── UI State ──────────────────────────────────────────────────────────────────
+
+sealed interface NotesUiState {
+    data object Loading : NotesUiState
+    data class Success(
+        val notes: List<CustomCalendarNote>,
+        val notesByDay: Map<LocalDate, List<CustomCalendarNote>>
+    ) : NotesUiState
+    data class Error(val message: String) : NotesUiState
+}
+
+/**
+ * Manages calendar notes (Room CRUD) and selected-date state.
+ * Equivalent of custom_calendar_notes_provider.dart.
+ */
+@HiltViewModel
+class CalendarViewModel @Inject constructor(
+    private val noteDao: NoteDao,
+    private val notificationService: NotificationService,
+    private val preferences: AppPreferences
+) : ViewModel() {
+
+    private val _selectedDate = MutableStateFlow(
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    )
+    val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
+
+    /** All notes as a live Room Flow, mapped to domain models. */
+    val notesState: StateFlow<NotesUiState> = noteDao.observeAll()
+        .map { entities ->
+            val notes = entities.map { it.toDomain() }
+            val byDay = buildMap<LocalDate, MutableList<CustomCalendarNote>> {
+                notes.forEach { note ->
+                    getOrPut(note.date) { mutableListOf() }.add(note)
+                }
+            }
+            NotesUiState.Success(notes, byDay) as NotesUiState
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NotesUiState.Loading)
+
+    /** Notes for the currently selected date as a live Room Flow. */
+    val notesForSelectedDate: StateFlow<List<CustomCalendarNote>> =
+        _selectedDate.flatMapLatest { date ->
+            val epochDay = date.toJavaLocalDate().toEpochDay()
+            noteDao.observeForDate(epochDay).map { entities -> entities.map { it.toDomain() } }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val _events = MutableSharedFlow<CalendarEvent>()
+    val events: SharedFlow<CalendarEvent> = _events.asSharedFlow()
+
+    // ── Date selection ────────────────────────────────────────────────────────
+
+    fun selectDate(date: LocalDate) {
+        _selectedDate.update { date }
+    }
+
+    // ── Note CRUD ─────────────────────────────────────────────────────────────
+
+    fun addNote(
+        date: LocalDate,
+        title: String,
+        description: String = "",
+        reminderAt: Instant? = null
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val now = Clock.System.now()
+                val resolvedReminder = resolveReminderTime(reminderAt, now)
+                var persistedReminder = resolvedReminder
+                var allowNotification = true
+
+                if (resolvedReminder != null) {
+                    if (!notificationService.canScheduleExactAlarms()) {
+                        allowNotification = false
+                        persistedReminder = null
+                    }
+                }
+
+                val note = CustomCalendarNote(
+                    id = 0, // Room auto-generates
+                    date = date,
+                    title = title.trim(),
+                    description = description.trim(),
+                    reminderAt = persistedReminder,
+                    createdAt = now
+                )
+
+                val insertedId = noteDao.insert(note.toEntity()).toInt()
+
+                if (persistedReminder != null && allowNotification) {
+                    val noteWithId = note.copy(id = insertedId)
+                    val body = note.description.ifEmpty { "Reminder" }
+                    val scheduled = notificationService.schedule(
+                        id = noteWithId.notificationId,
+                        title = "🗓️ ${noteWithId.title}",
+                        body = body,
+                        triggerAtMs = persistedReminder.toEpochMilliseconds()
+                    )
+                    if (!scheduled) {
+                        allowNotification = false
+                        noteDao.update(noteWithId.copy(reminderAt = null).toEntity())
+                    }
+                }
+
+                _events.emit(
+                    CalendarEvent.NoteAdded(
+                        if (allowNotification) AddNoteResult.SAVED
+                        else AddNoteResult.SAVED_WITHOUT_NOTIFICATION
+                    )
+                )
+            } catch (e: Exception) {
+                _events.emit(CalendarEvent.Error(e.message ?: "Failed to save note"))
+                _events.emit(CalendarEvent.NoteAdded(AddNoteResult.ERROR))
+            }
+        }
+    }
+
+    fun deleteNote(note: CustomCalendarNote) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (note.reminderAt != null) {
+                    notificationService.cancel(note.notificationId)
+                }
+                noteDao.deleteById(note.id)
+                _events.emit(CalendarEvent.NoteDeleted(true))
+            } catch (e: Exception) {
+                _events.emit(CalendarEvent.Error(e.message ?: "Failed to delete note"))
+                _events.emit(CalendarEvent.NoteDeleted(false))
+            }
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private fun resolveReminderTime(reminderAt: Instant?, now: Instant): Instant? {
+        if (reminderAt == null) return null
+        return if (reminderAt <= now) {
+            // Past time — trigger soon instead of silently skipping
+            Instant.fromEpochMilliseconds(now.toEpochMilliseconds() + 10_000L)
+        } else {
+            reminderAt
+        }
+    }
+}
