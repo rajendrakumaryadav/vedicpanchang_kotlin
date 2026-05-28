@@ -3,10 +3,13 @@ package `in`.vedicpanchang.app.ui.home
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
@@ -58,6 +61,29 @@ fun HomeScreen(
         derivedStateOf { navController.currentDestination?.route ?: NavRoutes.HOME }
     }
 
+    val listState = rememberLazyListState()
+    val showStickyHeader by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 }
+    }
+
+    // Hoist callbacks so sticky header can reuse them
+    val panchang = (state.todayPanchang as? PanchangUiState.Success)?.panchang
+    val onShare = {
+        panchang?.let {
+            val text = ShareService.formatPanchang(it, localizer, locale)
+            context.startActivity(
+                Intent.createChooser(
+                    Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, text)
+                    }, null
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
+        Unit
+    }
+    val onSettings = { navController.navigate(NavRoutes.SETTINGS) }
+
     Scaffold(
         bottomBar = {
             AppBottomNav(currentRoute = NavRoutes.HOME, navController = navController)
@@ -74,31 +100,19 @@ fun HomeScreen(
                 )
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = padding.calculateTopPadding(),
                     bottom = padding.calculateBottomPadding() + 16.dp
                 )
             ) {
-                // Header: Location and App Title
+                // Header: Icons | Location | Title (expanded)
                 item {
-                    val panchang = (state.todayPanchang as? PanchangUiState.Success)?.panchang
                     HomeHeader(
                         locationName = panchang?.locationName ?: "...",
-                        onShare = {
-                            panchang?.let {
-                                val text = ShareService.formatPanchang(it, localizer, locale)
-                                context.startActivity(
-                                    Intent.createChooser(
-                                        Intent(Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(Intent.EXTRA_TEXT, text)
-                                        }, null
-                                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                )
-                            }
-                        },
-                        onSettings = { navController.navigate(NavRoutes.SETTINGS) },
+                        onShare = onShare,
+                        onSettings = onSettings,
                         strings = strings
                     )
                 }
@@ -195,6 +209,38 @@ fun HomeScreen(
 
             item { Spacer(Modifier.height(32.dp)) }
         }
+
+        // Sticky collapsed header — slides in when expanded header scrolls off
+        AnimatedVisibility(
+            visible = showStickyHeader,
+            enter = slideInVertically { -it } + fadeIn(),
+            exit  = slideOutVertically { -it } + fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppColors.Background)
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = (strings["app_title"] ?: "VEDIC PANCHANG").uppercase(),
+                        style = AppTextStyles.displaySmall.copy(fontSize = 18.sp, color = Color.White),
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = onShare) {
+                        Icon(Icons.Outlined.Share, contentDescription = null, tint = Color.White)
+                    }
+                    IconButton(onClick = onSettings) {
+                        Icon(Icons.Outlined.Settings, contentDescription = null, tint = Color.White)
+                    }
+                }
+            }
+        }
     }
 }
 }
@@ -209,33 +255,16 @@ fun HomeHeader(
     onSettings: () -> Unit,
     strings: Map<String, String>
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, start = 16.dp, end = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.Top
+            .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = null,
-                    tint = Color(0xFFE53935),
-                    modifier = Modifier.size(14.dp)
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    text = locationName,
-                    style = AppTextStyles.bodySmall.copy(color = AppColors.TextSecondary, fontSize = 11.sp)
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = (strings["app_title"] ?: "VEDIC PANCHANG").uppercase(),
-                style = AppTextStyles.displaySmall.copy(fontSize = 18.sp, color = Color.White)
-            )
-        }
-        Row {
+        // Row 1: Share + Settings icons — right-aligned
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
             IconButton(onClick = onShare) {
                 Icon(Icons.Outlined.Share, contentDescription = null, tint = Color.White)
             }
@@ -243,6 +272,33 @@ fun HomeHeader(
                 Icon(Icons.Outlined.Settings, contentDescription = null, tint = Color.White)
             }
         }
+
+        // Row 2: Location — left
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.LocationOn,
+                contentDescription = null,
+                tint = Color(0xFFE53935),
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = locationName,
+                style = AppTextStyles.bodySmall.copy(color = AppColors.TextSecondary, fontSize = 11.sp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        Spacer(Modifier.height(6.dp))
+
+        // Row 3: App title — left
+        Text(
+            text = (strings["app_title"] ?: "VEDIC PANCHANG").uppercase(),
+            style = AppTextStyles.displaySmall.copy(fontSize = 22.sp, color = Color.White)
+        )
+
+        Spacer(Modifier.height(8.dp))
     }
 }
 

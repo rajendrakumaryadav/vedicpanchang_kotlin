@@ -84,23 +84,23 @@ fun DayDetailScreen(
                             SimpleDateFormat("d MMM yyyy", javaLocale).format(cal.time)
                         )
                         Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.LocationOn,
-                                    contentDescription = null,
-                                    tint = Color(0xFFE53935),
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Spacer(Modifier.width(3.dp))
-                                Text(
-                                    text = p.locationName,
-                                    style = AppTextStyles.bodySmall.copy(
-                                        color = AppColors.TextSecondary, fontSize = 11.sp
-                                    ),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
+//                            Row(verticalAlignment = Alignment.CenterVertically) {
+//                                Icon(
+//                                    imageVector = Icons.Default.LocationOn,
+//                                    contentDescription = null,
+//                                    tint = Color(0xFFE53935),
+//                                    modifier = Modifier.size(12.dp)
+//                                )
+//                                Spacer(Modifier.width(3.dp))
+//                                Text(
+//                                    text = p.locationName,
+//                                    style = AppTextStyles.bodySmall.copy(
+//                                        color = AppColors.TextSecondary, fontSize = 11.sp
+//                                    ),
+//                                    maxLines = 1,
+//                                    overflow = TextOverflow.Ellipsis
+//                                )
+//                            }
                             Text("$vaarName, $dateStr")
                         }
                     } else {
