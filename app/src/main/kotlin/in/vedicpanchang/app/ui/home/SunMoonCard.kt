@@ -1,7 +1,6 @@
 package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import androidx.compose.ui.graphics.luminance
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -34,7 +34,7 @@ fun SunMoonCard(
     strings: Map<String, String>,
     locale: String
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     val sunProgress = calculateProgress(panchang.sunrise, panchang.sunset, liveNow)
     val moonProgress = calculateProgress(panchang.moonrise, panchang.moonset, liveNow)

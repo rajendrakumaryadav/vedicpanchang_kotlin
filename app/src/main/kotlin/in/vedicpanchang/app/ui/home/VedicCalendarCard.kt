@@ -1,12 +1,13 @@
 package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +30,7 @@ fun VedicCalendarCard(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     // Using ordinal + 1 for month number
     val monthNum = panchang.date.month.ordinal + 1
     val vikramYear = localizer.vikramSamvatYear(panchang.date.year, monthNum)
@@ -39,12 +40,13 @@ fun VedicCalendarCard(
     
     val currentPrahar = remember(panchang) { calculatePrahar(panchang, strings, localizer) }
 
+    val colors = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(AppColors.Surface)
+            .background(colors.surface)
             .padding(16.dp)
     ) {
         Text(
@@ -54,16 +56,17 @@ fun VedicCalendarCard(
         Spacer(Modifier.height(16.dp))
 
         // Prahar info
+        val praharValueColor = if (isDark) AppColors.Secondary else AppColors.SecondaryOnLight
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("⌚", fontSize = 18.sp)
             Spacer(Modifier.width(8.dp))
             Text(
                 text = "${strings["prahar_label"] ?: "Prahar"}: ",
-                style = AppTextStyles.bodyMedium.copy(color = Color.White)
+                style = AppTextStyles.bodyMedium.copy(color = colors.onSurface)
             )
             Text(
                 text = currentPrahar,
-                style = AppTextStyles.bodyMedium.copy(color = AppColors.Secondary, fontWeight = FontWeight.Bold)
+                style = AppTextStyles.bodyMedium.copy(color = praharValueColor, fontWeight = FontWeight.Bold)
             )
         }
 
@@ -115,22 +118,23 @@ fun GridItem(
     subValue: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF231F35))
+            .background(colors.surfaceVariant)
             .padding(12.dp)
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(icon, fontSize = 14.sp)
                 Spacer(Modifier.width(6.dp))
-                Text(label, style = AppTextStyles.bodySmall.copy(color = AppColors.TextMuted, fontSize = 10.sp))
+                Text(label, style = AppTextStyles.bodySmall.copy(color = colors.onSurfaceVariant, fontSize = 10.sp))
             }
             Spacer(Modifier.height(8.dp))
             Text(value, style = AppTextStyles.displaySmall.copy(fontSize = 18.sp, color = AppColors.Primary))
             if (subValue.isNotEmpty()) {
-                Text(subValue, style = AppTextStyles.bodySmall.copy(color = AppColors.TextMuted, fontSize = 10.sp))
+                Text(subValue, style = AppTextStyles.bodySmall.copy(color = colors.onSurfaceVariant, fontSize = 10.sp))
             }
         }
     }

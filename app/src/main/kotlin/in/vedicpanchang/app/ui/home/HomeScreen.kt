@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,13 @@ fun HomeScreen(
     val locale by settingsVm.locale.collectAsStateWithLifecycle()
     val localizer by settingsVm.panchangLocalizer.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
+    val isDark = colors.background.luminance() < 0.5f
+    val backgroundBrush = if (isDark) {
+        Brush.verticalGradient(listOf(AppColors.NightSkyEnd, AppColors.NightSkyStart))
+    } else {
+        Brush.verticalGradient(listOf(colors.background, colors.surfaceVariant))
+    }
 
     val listState = rememberLazyListState()
     val showStickyHeader by remember {
@@ -82,15 +90,13 @@ fun HomeScreen(
         bottomBar = {
             AppBottomNav(navController = navController)
         },
-        containerColor = AppColors.Background
+        containerColor = colors.background
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(
-                        listOf(AppColors.NightSkyEnd, AppColors.NightSkyStart)
-                    )
+                    backgroundBrush
                 )
         ) {
             LazyColumn(
@@ -213,7 +219,7 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(AppColors.Background)
+                    .background(colors.background)
                     .statusBarsPadding()
                     .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
             ) {
@@ -223,14 +229,14 @@ fun HomeScreen(
                 ) {
                     Text(
                         text = (strings["app_title"] ?: "VEDIC PANCHANG").uppercase(),
-                        style = AppTextStyles.displaySmall.copy(fontSize = 18.sp, color = Color.White),
+                        style = AppTextStyles.displaySmall.copy(fontSize = 18.sp, color = colors.onBackground),
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = onShare) {
-                        Icon(Icons.Outlined.Share, contentDescription = null, tint = Color.White)
+                        Icon(Icons.Outlined.Share, contentDescription = null, tint = colors.onBackground)
                     }
                     IconButton(onClick = onSettings) {
-                        Icon(Icons.Outlined.Settings, contentDescription = null, tint = Color.White)
+                        Icon(Icons.Outlined.Settings, contentDescription = null, tint = colors.onBackground)
                     }
                 }
             }
@@ -249,6 +255,9 @@ fun HomeHeader(
     onSettings: () -> Unit,
     strings: Map<String, String>
 ) {
+    val colors = MaterialTheme.colorScheme
+    val secondaryText = colors.onSurfaceVariant
+    val iconTint = colors.onBackground
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -260,10 +269,10 @@ fun HomeHeader(
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(onClick = onShare) {
-                Icon(Icons.Outlined.Share, contentDescription = null, tint = Color.White)
+                Icon(Icons.Outlined.Share, contentDescription = null, tint = iconTint)
             }
             IconButton(onClick = onSettings) {
-                Icon(Icons.Outlined.Settings, contentDescription = null, tint = Color.White)
+                Icon(Icons.Outlined.Settings, contentDescription = null, tint = iconTint)
             }
         }
 
@@ -278,7 +287,7 @@ fun HomeHeader(
             Spacer(Modifier.width(4.dp))
             Text(
                 text = locationName,
-                style = AppTextStyles.bodySmall.copy(color = AppColors.TextSecondary, fontSize = 11.sp),
+                style = AppTextStyles.bodySmall.copy(color = secondaryText, fontSize = 11.sp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -289,7 +298,7 @@ fun HomeHeader(
         // Row 3: App title — left
         Text(
             text = (strings["app_title"] ?: "VEDIC PANCHANG").uppercase(),
-            style = AppTextStyles.displaySmall.copy(fontSize = 22.sp, color = Color.White)
+            style = AppTextStyles.displaySmall.copy(fontSize = 22.sp, color = colors.onBackground)
         )
 
         Spacer(Modifier.height(8.dp))
@@ -302,6 +311,7 @@ fun HomeDateHeader(
     locale: String,
     onCalendarTap: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     val javaLocale = if (locale == "sa" || locale == "hi") Locale("hi", "IN") else Locale.ENGLISH
     val now = Date()
     val weekdayFmt = SimpleDateFormat("EEEE", javaLocale)
@@ -317,11 +327,11 @@ fun HomeDateHeader(
         Column {
             Text(
                 text = weekdayFmt.format(now),
-                style = AppTextStyles.bodySmall.copy(color = AppColors.TextSecondary)
+                style = AppTextStyles.bodySmall.copy(color = colors.onSurfaceVariant)
             )
             Text(
                 text = dateFmt.format(now).uppercase(),
-                style = AppTextStyles.displayMedium.copy(fontSize = 24.sp, color = Color.White)
+                style = AppTextStyles.displayMedium.copy(fontSize = 24.sp, color = colors.onBackground)
             )
         }
         TextButton(

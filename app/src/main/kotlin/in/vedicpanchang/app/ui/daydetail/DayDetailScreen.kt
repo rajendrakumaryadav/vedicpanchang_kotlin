@@ -5,12 +5,12 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -112,17 +113,35 @@ fun DayDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        val popped = navController.popBackStack()
+                        if (!popped) {
+                            navController.navigate(NavRoutes.HOME) {
+                                popUpTo(NavRoutes.HOME) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.Background)
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigate(NavRoutes.HOME) {
+                            popUpTo(NavRoutes.HOME) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }) {
+                        Icon(Icons.Filled.Home, contentDescription = strings["nav_home"] ?: "Home")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
             AppBottomNav(navController = navController)
         },
-        containerColor = AppColors.Background
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         val p = panchang
         if (p == null) {
@@ -199,7 +218,7 @@ private fun VedicCalendarSection(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val monthNum = panchang.date.month.ordinal + 1
     val vedicMonth = localizer.vedicMonthName(panchang)
     val vikramYear = localizer.numerals(
@@ -210,16 +229,16 @@ private fun VedicCalendarSection(
     )
     val vedicDateLine = localizer.vedicDateLine(panchang)
 
-    val dividerColor = if (isDark) Color.White.copy(alpha = 0.07f) else Color.Black.copy(alpha = 0.07f)
-    val labelColor = if (isDark) AppColors.TextSecondary else AppColors.TextSecondaryLight
-    val valueColor = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
+    val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val valueColor = MaterialTheme.colorScheme.onSurface
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(if (isDark) AppColors.Surface else AppColors.SurfaceLight)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         Text(
@@ -292,7 +311,7 @@ private fun AuspiciousMuhurtasCard(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val vijaya = panchang.auspiciousMuhurtas.find { it.id == "vijaya_muhurta" }?.range
     val godhuli = panchang.auspiciousMuhurtas.find { it.id == "godhuli_muhurta" }?.range
 
@@ -301,7 +320,7 @@ private fun AuspiciousMuhurtasCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(if (isDark) AppColors.Surface else AppColors.SurfaceLight)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         Text(
@@ -331,14 +350,14 @@ private fun InauspiciousPeriodsCard(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(if (isDark) AppColors.Surface else AppColors.SurfaceLight)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         Text(
@@ -378,8 +397,8 @@ private fun MuhurtaRow(
             e.day, e.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, e.hour, e.minute
         )
     )
-    val textPrimary = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
-    val textSecondary = if (isDark) AppColors.TextSecondary else AppColors.TextSecondaryLight
+    val textPrimary = MaterialTheme.colorScheme.onSurface
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(
@@ -426,17 +445,17 @@ private fun DaytimeMuhurtasCard(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     var expanded by remember { mutableStateOf(false) }
     val muhurtas = panchang.daytimeMuhurtas
-    val dividerColor = if (isDark) Color.White.copy(alpha = 0.07f) else Color.Black.copy(alpha = 0.07f)
+    val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(if (isDark) AppColors.Surface else AppColors.SurfaceLight)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -508,12 +527,12 @@ private fun DaytimeMuhurtaCell(
     val timeStr = localizer.numerals(
         "%02d:%02d – %02d:%02d".format(s.hour, s.minute, e.hour, e.minute)
     )
-    val textPrimary = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
+    val textPrimary = MaterialTheme.colorScheme.onSurface
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isDark) AppColors.SurfaceVariant else AppColors.SurfaceVariantLight)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 10.dp, vertical = 10.dp)
     ) {
         Column {
@@ -543,18 +562,18 @@ private fun AstronomicalDataCard(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     var expanded by remember { mutableStateOf(false) }
-    val dividerColor = if (isDark) Color.White.copy(alpha = 0.07f) else Color.Black.copy(alpha = 0.07f)
-    val textPrimary = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
-    val textSecondary = if (isDark) AppColors.TextSecondary else AppColors.TextSecondaryLight
+    val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    val textPrimary = MaterialTheme.colorScheme.onSurface
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(if (isDark) AppColors.Surface else AppColors.SurfaceLight)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier

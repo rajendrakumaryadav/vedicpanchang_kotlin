@@ -1,12 +1,14 @@
 package `in`.vedicpanchang.app.ui.horoscope
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +39,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +52,9 @@ fun HoroscopeScreen(
     val strings by settingsVm.strings.collectAsStateWithLifecycle()
     val localizer by settingsVm.horoscopeLocalizer.collectAsStateWithLifecycle()
     val locale by settingsVm.locale.collectAsStateWithLifecycle()
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val topBarColor = if (isDark) Color(0xFF1A0A2E) else Color(0xFFFDFCFB)
 
     Scaffold(
         topBar = {
@@ -61,14 +67,17 @@ fun HoroscopeScreen(
                         }
                     }
                 },
+                scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = if (isDark) Color(0xFF1A0A2E) else Color(0xFFFDFCFB)
+                    containerColor = topBarColor,
+                    scrolledContainerColor = topBarColor
                 )
             )
         },
         bottomBar = { AppBottomNav(navController = navController) }
     ) { padding ->
         LazyColumn(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding() + 16.dp)
         ) {
             // Intro banner
@@ -225,21 +234,33 @@ private fun BirthInputForm(
             OutlinedTextField(
                 value = locationQuery,
                 onValueChange = { locationQuery = it },
-                label = { Text(strings["enter_location"] ?: "Enter location") },
+                label = { Text(strings["enter_location"] ?: "Enter name of place") },
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 singleLine = true,
+                leadingIcon = {
+                    IconButton(onClick = onUseCurrentLocation) {
+                        Icon(
+                            Icons.Default.MyLocation,
+                            contentDescription = strings["use_current_location"] ?: "Use current location",
+                            tint = AppColors.Primary
+                        )
+                    }
+                },
                 trailingIcon = {
                     if (searchState is LocationSearchState.Searching)
-                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = AppColors.Primary)
                     else
-                        TextButton(onClick = { onSearch(locationQuery) }) { Text(strings["search"] ?: "Search", style = AppTextStyles.labelSmall.copy(color = AppColors.Primary)) }
+                        IconButton(onClick = { onSearch(locationQuery) }) {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = strings["search"] ?: "Search",
+                                tint = AppColors.Primary
+                            )
+                        }
                 }
             )
             if (searchState is LocationSearchState.NotFound) {
                 Text(strings["location_not_found"] ?: "Not found", style = AppTextStyles.bodySmall.copy(color = AppColors.Inauspicious))
-            }
-            TextButton(onClick = onUseCurrentLocation) {
-                Text(strings["use_current_location"] ?: "Use current location", style = AppTextStyles.labelSmall.copy(color = AppColors.Primary))
             }
             Spacer(Modifier.height(8.dp))
 

@@ -21,6 +21,8 @@ import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.navigation.NavRoutes
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.luminance
 import `in`.vedicpanchang.app.viewmodel.LocationUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,9 +93,10 @@ fun EventCard(
     onClick: () -> Unit
 ) {
     val isToday = daysFromNow == 0
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val date = panchang.date
     val javaLocale = if (localizer.locale == "sa" || localizer.locale == "hi") Locale("hi", "IN") else Locale.ENGLISH
-    
+
     val calendar = java.util.Calendar.getInstance()
     calendar.set(date.year, date.monthNumber - 1, date.dayOfMonth)
     val dateStr = localizer.numerals(SimpleDateFormat("d MMM", javaLocale).format(calendar.time))
@@ -108,14 +111,20 @@ fun EventCard(
     val tithiName = localizer.tithiName(panchang)
     val subInfo = "$paksha $tithiName"
 
+    val cardBg = when {
+        isToday -> Brush.verticalGradient(listOf(Color(0xFFFF8C38), Color(0xFFFFD12B)))
+        isDark  -> Brush.verticalGradient(listOf(Color(0xFF242033), Color(0xFF1A1629)))
+        else    -> Brush.verticalGradient(listOf(Color(0xFFFEF9F2), Color(0xFFF5E8D0)))
+    }
+    val primaryTextColor = if (isToday || isDark) Color.White else AppColors.TextPrimaryLight
+    val secondaryTextColor = if (isToday || isDark) Color.White.copy(alpha = 0.8f) else AppColors.TextSecondaryLight
+    val tertiaryTextColor = if (isToday || isDark) Color.White.copy(alpha = 0.6f) else AppColors.TextMutedLight
+
     Box(
         modifier = Modifier
             .size(width = 135.dp, height = 155.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (isToday) Brush.verticalGradient(listOf(Color(0xFFFF8C38), Color(0xFFFFD12B)))
-                else Brush.verticalGradient(listOf(Color(0xFF242033), Color(0xFF1A1629)))
-            )
+            .background(cardBg)
             .clickable(onClick = onClick)
             .padding(12.dp)
     ) {
@@ -124,7 +133,7 @@ fun EventCard(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(if (isToday) Color.White.copy(alpha = 0.2f) else AppColors.Primary.copy(alpha = 0.1f))
+                    .background(if (isToday) Color.White.copy(alpha = 0.2f) else AppColors.Primary.copy(alpha = if (isDark) 0.1f else 0.12f))
                     .padding(horizontal = 6.dp, vertical = 3.dp)
             ) {
                 Text(
@@ -143,7 +152,7 @@ fun EventCard(
             Text(
                 text = panchang.festivals.joinToString("\n") { localizer.festivalName(it) },
                 style = AppTextStyles.bodyMedium.copy(
-                    color = Color.White,
+                    color = primaryTextColor,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     lineHeight = 18.sp
@@ -156,11 +165,11 @@ fun EventCard(
             Column {
                 Text(
                     text = dateStr,
-                    style = AppTextStyles.bodySmall.copy(color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
+                    style = AppTextStyles.bodySmall.copy(color = secondaryTextColor, fontSize = 11.sp)
                 )
                 Text(
                     text = subInfo,
-                    style = AppTextStyles.bodySmall.copy(color = Color.White.copy(alpha = 0.6f), fontSize = 9.sp)
+                    style = AppTextStyles.bodySmall.copy(color = tertiaryTextColor, fontSize = 9.sp)
                 )
             }
         }

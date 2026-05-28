@@ -2,7 +2,6 @@ package `in`.vedicpanchang.app.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +31,7 @@ import `in`.vedicpanchang.app.service.HelpContentService
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import `in`.vedicpanchang.app.viewmodel.LocationUiState
+import `in`.vedicpanchang.app.viewmodel.PanchangUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
 import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
 import `in`.vedicpanchang.astronomy.AstronomyService
@@ -77,7 +78,8 @@ fun HelpScreen(
                     localizer = localizer,
                     locale = locale,
                     liveNow = panchangState.liveNow,
-                    locationState = panchangState.location
+                    locationState = panchangState.location,
+                    todayPanchang = panchangState.todayPanchang
                 )
             }
 
@@ -100,16 +102,21 @@ private fun LiveAstronomyCard(
     localizer: PanchangLocalizer,
     locale: String,
     liveNow: Instant?,
-    locationState: LocationUiState
+    locationState: LocationUiState,
+    todayPanchang: PanchangUiState
 ) {
     val effectiveInstant = liveNow ?: Instant.fromEpochMilliseconds(System.currentTimeMillis())
     val javaLocale = if (locale == "hi" || locale == "sa") Locale("hi", "IN") else Locale.ENGLISH
     val asOf = SimpleDateFormat("yyyy-MM-dd HH:mm", javaLocale)
         .format(Date(effectiveInstant.toEpochMilliseconds()))
-    val jd = AstronomyService.julianDayFromInstant(effectiveInstant)
-    val sunLon = AstronomyService.sunLongitudeSidereal(jd)
-    val moonLon = AstronomyService.moonLongitudeSidereal(jd)
-    val isDark = isSystemInDarkTheme()
+    // Compute JD on main thread only (pure math, no shared cache).
+    // Use sun/moon longitudes from the already-computed panchang to avoid
+    // concurrent access to AstronomyService's non-thread-safe caches.
+    val jd = remember(effectiveInstant) { AstronomyService.julianDayFromInstant(effectiveInstant) }
+    val panchang = (todayPanchang as? PanchangUiState.Success)?.panchang
+    val sunLon = panchang?.sunLongitude
+    val moonLon = panchang?.moonLongitude
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -155,13 +162,13 @@ private fun LiveAstronomyCard(
                     Text(
                         "${strings["help_as_of"] ?: "As of"}: ${localizer.numerals(asOf)}",
                         style = AppTextStyles.bodySmall.copy(
-                            color = if (isDark) AppColors.TextSecondary else AppColors.TextSecondaryLight
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                     Spacer(Modifier.height(10.dp))
                     MetricRow("🗓️ ${strings["julian_day"] ?: "Julian Day"}", localizer.numerals("%.6f".format(jd)))
-                    MetricRow("☀️ ${strings["sun_longitude"] ?: "Sun Longitude"}", "${localizer.numerals("%.4f".format(sunLon))}°")
-                    MetricRow("🌙 ${strings["moon_longitude"] ?: "Moon Longitude"}", "${localizer.numerals("%.4f".format(moonLon))}°")
+                    MetricRow("☀️ ${strings["sun_longitude"] ?: "Sun Longitude"}", if (sunLon != null) "${localizer.numerals("%.4f".format(sunLon))}°" else "—")
+                    MetricRow("🌙 ${strings["moon_longitude"] ?: "Moon Longitude"}", if (moonLon != null) "${localizer.numerals("%.4f".format(moonLon))}°" else "—")
                     MetricRow("📍 ${strings["latitude"] ?: "Latitude"}", localizer.numerals("%.4f".format(locationState.location.latitude)))
                     MetricRow("📍 ${strings["longitude"] ?: "Longitude"}", localizer.numerals("%.4f".format(locationState.location.longitude)))
                     MetricRow("🏙️ ${strings["location"] ?: "Location"}", locationState.location.displayName)
@@ -222,7 +229,7 @@ private fun HelpSectionCard(
             Text(
                 section.intro,
                 style = AppTextStyles.bodySmall.copy(
-                    color = if (isSystemInDarkTheme()) AppColors.TextSecondary else AppColors.TextSecondaryLight
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )

@@ -1,7 +1,6 @@
 package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +18,7 @@ import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import androidx.compose.ui.graphics.luminance
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -33,7 +33,7 @@ fun TodayPanchangCard(
     localizer: PanchangLocalizer,
     locale: String
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val bgGradient = if (isDark)
         Brush.linearGradient(listOf(Color(0xFF1F1B2E), Color(0xFF2A1F3D)))
     else

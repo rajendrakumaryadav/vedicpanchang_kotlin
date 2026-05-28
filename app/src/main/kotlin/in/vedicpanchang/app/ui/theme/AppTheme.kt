@@ -32,18 +32,19 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary          = AppColors.Primary,
     primaryContainer = AppColors.PrimaryDark,
-    secondary        = AppColors.Secondary,
+    secondary        = AppColors.SecondaryOnLight,
     secondaryContainer = AppColors.SecondaryDark,
     surface          = AppColors.SurfaceLight,
     background       = AppColors.BackgroundLight,
     error            = AppColors.Inauspicious,
     onPrimary        = Color.White,
-    onSecondary      = AppColors.TextPrimaryLight,
+    onSecondary      = Color.White,
     onSurface        = AppColors.TextPrimaryLight,
     onBackground     = AppColors.TextPrimaryLight,
     onError          = Color.White,
     outline          = AppColors.CardBorderLight,
     surfaceVariant   = AppColors.SurfaceVariantLight,
+    onSurfaceVariant = AppColors.TextSecondaryLight,
 )
 
 private fun buildTypography(isDark: Boolean): Typography {

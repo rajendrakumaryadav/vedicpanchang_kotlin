@@ -123,7 +123,7 @@ fun SettingsScreen(
                         leading = { Text("🌐", style = AppTextStyles.bodyLarge) },
                         title = strings["select_language"] ?: "Select Language",
                         subtitle = AppStrings.LOCALE_DISPLAY_NAMES[locale] ?: "English",
-                        trailing = { Icon(Icons.Outlined.ChevronRight, null, tint = AppColors.TextMuted) },
+                        trailing = { Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         onClick = { showLangSheet = true }
                     )
                 }
@@ -175,7 +175,7 @@ fun SettingsScreen(
                         leading = { Icon(Icons.Outlined.Help, null, tint = AppColors.Primary) },
                         title = strings["help"] ?: "Help",
                         subtitle = strings["help_subtitle"] ?: "Understand parameters and calculations",
-                        trailing = { Icon(Icons.Outlined.ChevronRight, null, tint = AppColors.TextMuted) },
+                        trailing = { Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         onClick = { navController.navigate(NavRoutes.HELP) }
                     )
                 }
@@ -223,8 +223,8 @@ fun LanguageBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = AppColors.Surface,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = AppColors.TextMuted.copy(alpha = 0.4f)) }
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) }
     ) {
         Column(
             modifier = Modifier
@@ -283,13 +283,13 @@ fun LanguageOption(
                 onClick = null,
                 colors = RadioButtonDefaults.colors(
                     selectedColor = AppColors.Primary,
-                    unselectedColor = AppColors.TextMuted
+                    unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(nativeName, style = AppTextStyles.labelLarge)
-                Text(englishName, style = AppTextStyles.bodySmall.copy(color = AppColors.TextMuted))
+                Text(englishName, style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
             }
         }
     }

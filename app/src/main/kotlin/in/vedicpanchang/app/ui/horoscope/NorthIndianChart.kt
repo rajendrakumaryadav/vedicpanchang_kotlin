@@ -2,7 +2,6 @@ package `in`.vedicpanchang.app.ui.horoscope
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
@@ -52,7 +52,7 @@ fun NorthIndianChart(
     strings: Map<String, String>,
     localizer: HoroscopeLocalizer
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val borderColor = if (isDark) AppColors.CardBorder else AppColors.CardBorderLight
     val planets = if (isNavamsha) chart.navamshaData else chart.planets
     val houseSigns = if (isNavamsha) chart.navamshaHouseSigns else chart.houseSigns
