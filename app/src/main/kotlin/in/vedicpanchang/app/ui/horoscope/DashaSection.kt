@@ -23,9 +23,11 @@ import `in`.vedicpanchang.app.data.model.HoroscopeModel
 import `in`.vedicpanchang.app.l10n.HoroscopeLocalizer
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import kotlinx.datetime.LocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
 private val DASHA_SYMBOLS = mapOf(
@@ -276,5 +278,5 @@ private fun dashaProgress(now: Instant, start: Instant, end: Instant): Float {
 
 private fun formatDate(instant: Instant): String {
     val local = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-    return "%04d-%02d-%02d".format(local.year, local.monthNumber, local.dayOfMonth)
+    return "%04d-%02d-%02d".format(local.year, local.month.number, local.day)
 }

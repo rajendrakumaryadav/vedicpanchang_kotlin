@@ -99,7 +99,7 @@ fun EventCard(
     val isToday = daysFromNow == 0
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val date = panchang.date
-    val javaLocale = if (localizer.locale == "sa" || localizer.locale == "hi") Locale("hi", "IN") else Locale.ENGLISH
+    val javaLocale = if (localizer.locale == "sa" || localizer.locale == "hi") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
 
     val calendar = java.util.Calendar.getInstance()
     calendar.set(date.year, date.month.number - 1, date.day)

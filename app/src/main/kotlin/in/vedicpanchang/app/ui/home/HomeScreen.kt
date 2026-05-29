@@ -312,7 +312,7 @@ fun HomeDateHeader(
     onCalendarTap: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val javaLocale = if (locale == "sa" || locale == "hi") Locale("hi", "IN") else Locale.ENGLISH
+    val javaLocale = if (locale == "sa" || locale == "hi") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
     val now = Date()
     val weekdayFmt = SimpleDateFormat("EEEE", javaLocale)
     val dateFmt = SimpleDateFormat("d MMMM yyyy", javaLocale)

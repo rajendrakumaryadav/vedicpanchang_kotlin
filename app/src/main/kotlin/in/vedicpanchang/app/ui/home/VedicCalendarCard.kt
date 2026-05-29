@@ -19,6 +19,7 @@ import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import kotlinx.datetime.LocalDate
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -34,7 +35,7 @@ fun VedicCalendarCard(
     // Using ordinal + 1 for month number
     val monthNum = panchang.date.month.ordinal + 1
     val vikramYear = localizer.vikramSamvatYear(panchang.date.year, monthNum)
-    val shakaYear = localizer.shakaSamvatYear(panchang.date.year, monthNum, panchang.date.dayOfMonth)
+    val shakaYear = localizer.shakaSamvatYear(panchang.date.year, monthNum, panchang.date.day)
     val kaliYear = shakaYear + 3179
     val vedicMonth = localizer.vedicMonthName(panchang)
     

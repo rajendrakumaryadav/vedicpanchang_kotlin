@@ -10,6 +10,7 @@ import `in`.vedicpanchang.app.data.datasource.db.toEntity
 import `in`.vedicpanchang.app.data.model.CustomCalendarNote
 import `in`.vedicpanchang.app.service.NotificationService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -83,6 +84,7 @@ class CalendarViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NotesUiState.Loading)
 
     /** Notes for the currently selected date as a live Room Flow. */
+    @OptIn(ExperimentalCoroutinesApi::class)
     val notesForSelectedDate: StateFlow<List<CustomCalendarNote>> =
         _selectedDate.flatMapLatest { date ->
             val epochDay = date.toJavaLocalDate().toEpochDay()

@@ -33,7 +33,7 @@ fun KundaliShareCard(
     modifier: Modifier = Modifier
 ) {
     val now = Clock.System.now()
-    val javaLocale = if (locale == "hi" || locale == "sa") Locale("hi", "IN") else Locale.ENGLISH
+    val javaLocale = if (locale == "hi" || locale == "sa") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
     val birthDate = SimpleDateFormat("d MMM yyyy, HH:mm", javaLocale)
         .format(Date(chart.birthDetails.birthInstant.toEpochMilliseconds()))
 

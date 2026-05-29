@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Help
 import androidx.compose.material3.BottomSheetDefaults
@@ -172,7 +173,7 @@ fun SettingsScreen(
             item {
                 SettingsCard {
                     ListTile(
-                        leading = { Icon(Icons.Outlined.Help, null, tint = AppColors.Primary) },
+                        leading = { Icon(Icons.AutoMirrored.Outlined.Help, null, tint = AppColors.Primary) },
                         title = strings["help"] ?: "Help",
                         subtitle = strings["help_subtitle"] ?: "Understand parameters and calculations",
                         trailing = { Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
