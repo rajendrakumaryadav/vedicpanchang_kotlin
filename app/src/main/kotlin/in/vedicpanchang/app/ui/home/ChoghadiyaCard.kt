@@ -1,10 +1,11 @@
 package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,45 +65,58 @@ fun ChoghadiyaCard(
         )
         Spacer(Modifier.height(16.dp))
 
-        // Day Choghadiya
-        Row(verticalAlignment = Alignment.CenterVertically) {
-//            Text("☀️", fontSize = 14.sp)
-//            Spacer(Modifier.width(8.dp))
-            Text(
-                text = strings["day_choghadiya"] ?: "Day Choghadiya",
-                style = AppTextStyles.labelLarge.copy(color = AppColors.Primary, fontSize = 12.sp)
-            )
-        }
-        Spacer(Modifier.height(12.dp))
-        daySlots.forEach { slot ->
-            ChoghadiyaSlotRow(slot = slot, isCurrent = slot == currentSlot, localizer = localizer)
-        }
-
-        Spacer(Modifier.height(16.dp))
-        HorizontalDivider(color = colors.onSurface.copy(alpha = 0.1f), thickness = 0.5.dp)
-        Spacer(Modifier.height(16.dp))
-
-        // Night Choghadiya
-        Row(verticalAlignment = Alignment.CenterVertically) {
-//            Text("🌙", fontSize = 14.sp)
-//            Spacer(Modifier.width(8.dp))
-            Text(
-                text = strings["night_choghadiya"] ?: "Night Choghadiya",
-                style = AppTextStyles.labelLarge.copy(
-                    color = if (isDark) Color(0xFFFFD700) else AppColors.SecondaryOnLight,
-                    fontSize = 12.sp
+        Row(modifier = Modifier.fillMaxWidth()) {
+            // Day column
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = strings["day_choghadiya"] ?: "Day",
+                    style = AppTextStyles.labelLarge.copy(
+                        color = AppColors.Primary,
+                        fontSize = 11.sp
+                    )
                 )
+                Spacer(Modifier.height(10.dp))
+                daySlots.forEach { slot ->
+                    ChoghadiyaSlotCompact(
+                        slot = slot,
+                        isCurrent = slot == currentSlot,
+                        localizer = localizer
+                    )
+                }
+            }
+
+            VerticalDivider(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .fillMaxHeight(),
+                thickness = 0.5.dp,
+                color = colors.onSurface.copy(alpha = 0.12f)
             )
-        }
-        Spacer(Modifier.height(12.dp))
-        nightSlots.forEach { slot ->
-            ChoghadiyaSlotRow(slot = slot, isCurrent = slot == currentSlot, localizer = localizer)
+
+            // Night column
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = strings["night_choghadiya"] ?: "Night",
+                    style = AppTextStyles.labelLarge.copy(
+                        color = if (isDark) Color(0xFFFFD700) else AppColors.SecondaryOnLight,
+                        fontSize = 11.sp
+                    )
+                )
+                Spacer(Modifier.height(10.dp))
+                nightSlots.forEach { slot ->
+                    ChoghadiyaSlotCompact(
+                        slot = slot,
+                        isCurrent = slot == currentSlot,
+                        localizer = localizer
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ChoghadiyaSlotRow(
+private fun ChoghadiyaSlotCompact(
     slot: ChoghadiyaSlot,
     isCurrent: Boolean,
     localizer: PanchangLocalizer
@@ -110,7 +124,12 @@ private fun ChoghadiyaSlotRow(
     val tz = TimeZone.currentSystemDefault()
     val startLocal = slot.start.toLocalDateTime(tz)
     val endLocal = slot.end.toLocalDateTime(tz)
-    val timeStr = localizer.numerals("%02d:%02d – %02d:%02d".format(startLocal.hour, startLocal.minute, endLocal.hour, endLocal.minute))
+    val timeStr = localizer.numerals(
+        "%02d:%02d–%02d:%02d".format(
+            startLocal.hour, startLocal.minute,
+            endLocal.hour, endLocal.minute
+        )
+    )
 
     val colors = MaterialTheme.colorScheme
     val typeColor = when (slot.type) {
@@ -121,34 +140,44 @@ private fun ChoghadiyaSlotRow(
         ChoghadiyaType.INAUSPICIOUS    -> Color(0xFFE53935)
     }
 
+    val highlightShape = RoundedCornerShape(8.dp)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 3.dp)
+            .then(
+                if (isCurrent) Modifier
+                    .clip(highlightShape)
+                    .background(Color(0xFFFF9800).copy(alpha = 0.12f))
+                    .border(1.dp, Color(0xFFFF9800).copy(alpha = 0.5f), highlightShape)
+                else Modifier
+            )
+            .padding(vertical = 4.dp, horizontal = if (isCurrent) 6.dp else 0.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(8.dp)
+                .size(7.dp)
                 .clip(RoundedCornerShape(50))
                 .background(typeColor)
         )
-        Spacer(Modifier.width(16.dp))
-        Text(
-            text = localizer.choghadiyaName(slot.name),
-            style = AppTextStyles.bodyMedium.copy(
-                color = if (isCurrent) colors.onSurface else colors.onSurfaceVariant,
-                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal
-            ),
-            modifier = Modifier.width(100.dp)
-        )
-        Spacer(Modifier.weight(1f))
-        Text(
-            text = timeStr,
-            style = AppTextStyles.timeSmall.copy(
-                color = if (isCurrent) colors.onSurface else colors.onSurfaceVariant.copy(alpha = 0.7f),
-                fontSize = 12.sp
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(
+                text = localizer.choghadiyaName(slot.name),
+                style = AppTextStyles.bodyMedium.copy(
+                    color = if (isCurrent) colors.onSurface else colors.onSurfaceVariant,
+                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 12.sp
+                )
             )
-        )
+            Text(
+                text = timeStr,
+                style = AppTextStyles.timeSmall.copy(
+                    color = if (isCurrent) colors.onSurface else colors.onSurfaceVariant.copy(alpha = 0.6f),
+                    fontSize = 10.sp
+                )
+            )
+        }
     }
 }
