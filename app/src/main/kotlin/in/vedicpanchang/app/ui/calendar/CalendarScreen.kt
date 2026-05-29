@@ -185,7 +185,7 @@ fun CalendarScreen(
             )
         },
         bottomBar = {
-            AppBottomNav(navController = navController)
+            AppBottomNav(navController = navController, strings = strings)
         },
     ) { padding ->
         Column(

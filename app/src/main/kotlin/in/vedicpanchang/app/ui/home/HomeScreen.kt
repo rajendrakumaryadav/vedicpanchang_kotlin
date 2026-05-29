@@ -88,7 +88,7 @@ fun HomeScreen(
 
     Scaffold(
         bottomBar = {
-            AppBottomNav(navController = navController)
+            AppBottomNav(navController = navController, strings = strings)
         },
         containerColor = colors.background
     ) { padding ->

@@ -27,6 +27,8 @@ import `in`.vedicpanchang.app.viewmodel.LocationUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.time.Clock
@@ -100,7 +102,7 @@ fun EventCard(
     val javaLocale = if (localizer.locale == "sa" || localizer.locale == "hi") Locale("hi", "IN") else Locale.ENGLISH
 
     val calendar = java.util.Calendar.getInstance()
-    calendar.set(date.year, date.monthNumber - 1, date.dayOfMonth)
+    calendar.set(date.year, date.month.number - 1, date.day)
     val dateStr = localizer.numerals(SimpleDateFormat("d MMM", javaLocale).format(calendar.time))
 
     val dayLabel = when (daysFromNow) {
@@ -124,7 +126,7 @@ fun EventCard(
 
     Box(
         modifier = Modifier
-            .size(width = 135.dp, height = 155.dp)
+            .size(width = 120.dp, height = 110.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(cardBg)
             .clickable(onClick = onClick)

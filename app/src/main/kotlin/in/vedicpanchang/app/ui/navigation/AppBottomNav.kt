@@ -26,19 +26,20 @@ import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 private data class NavItem(
     val route: String,
     val labelRes: Int,
+    val stringKey: String,
     val icon: ImageVector,
     val activeIcon: ImageVector
 )
 
 private val NAV_ITEMS = listOf(
-    NavItem(NavRoutes.HOME,      R.string.nav_home,      Icons.Outlined.Home,          Icons.Filled.Home),
-    NavItem(NavRoutes.CALENDAR,  R.string.nav_calendar,  Icons.Outlined.CalendarMonth,  Icons.Filled.CalendarMonth),
-    NavItem(NavRoutes.HOROSCOPE, R.string.nav_horoscope, Icons.Outlined.AutoGraph,      Icons.Filled.AutoGraph),
-    NavItem(NavRoutes.SETTINGS,  R.string.nav_settings,  Icons.Outlined.Settings,       Icons.Filled.Settings),
+    NavItem(NavRoutes.HOME,      R.string.nav_home,      "nav_home",      Icons.Outlined.Home,          Icons.Filled.Home),
+    NavItem(NavRoutes.CALENDAR,  R.string.nav_calendar,  "nav_calendar",  Icons.Outlined.CalendarMonth,  Icons.Filled.CalendarMonth),
+    NavItem(NavRoutes.HOROSCOPE, R.string.nav_horoscope, "nav_horoscope", Icons.Outlined.AutoGraph,      Icons.Filled.AutoGraph),
+    NavItem(NavRoutes.SETTINGS,  R.string.nav_settings,  "nav_settings",  Icons.Outlined.Settings,       Icons.Filled.Settings),
 )
 
 @Composable
-fun AppBottomNav(navController: NavController) {
+fun AppBottomNav(navController: NavController, strings: Map<String, String> = emptyMap()) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -63,7 +64,12 @@ fun AppBottomNav(navController: NavController) {
                         contentDescription = null
                     )
                 },
-                label = { Text(stringResource(item.labelRes), style = AppTextStyles.labelSmall) },
+                label = {
+                    Text(
+                        strings[item.stringKey] ?: stringResource(item.labelRes),
+                        style = AppTextStyles.labelSmall
+                    )
+                },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = AppColors.Primary,
                     selectedTextColor = AppColors.Primary,

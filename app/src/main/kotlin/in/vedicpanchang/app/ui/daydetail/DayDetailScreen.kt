@@ -145,7 +145,7 @@ fun DayDetailScreen(
             )
         },
         bottomBar = {
-            AppBottomNav(navController = navController)
+            AppBottomNav(navController = navController, strings = strings)
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->

@@ -77,7 +77,7 @@ fun HoroscopeScreen(
                 )
             )
         },
-        bottomBar = { AppBottomNav(navController = navController) }
+        bottomBar = { AppBottomNav(navController = navController, strings = strings) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
