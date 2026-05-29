@@ -1,6 +1,7 @@
 package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -11,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,15 +20,18 @@ import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
+import `in`.vedicpanchang.app.ui.theme.InterFamily
 import androidx.compose.ui.graphics.luminance
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.time.Clock
+
+private val cardShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun TodayPanchangCard(
@@ -41,19 +46,23 @@ fun TodayPanchangCard(
         Brush.linearGradient(listOf(Color(0xFF1F1B2E), Color(0xFF2A1F3D)))
     else
         Brush.linearGradient(listOf(Color(0xFFFEFDFB), Color(0xFFF5E6D3)))
-    if (isDark) AppColors.Primary.copy(alpha = 0.3f) else Color(0xFFCBA35C).copy(alpha = 0.3f)
+
+    val borderColor = if (isDark)
+        AppColors.Primary.copy(alpha = 0.45f)
+    else
+        Color(0xFFCBA35C).copy(alpha = 0.55f)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, borderColor, cardShape)
             .background(bgGradient)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            // Header row
+        Column(modifier = Modifier.padding(20.dp)) {
+
+            // Header row — "Panchang" label + optional festival badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -70,11 +79,10 @@ fun TodayPanchangCard(
 
             Spacer(Modifier.height(16.dp))
 
-            // Actual Tithi banner
+            // Current live tithi banner
             ActualTithiRow(
                 label = strings["actual_tithi"] ?: "Actual Tithi",
                 tithi = localizer.tithiDisplay(livePanchang),
-                startTime = livePanchang.tithiStartTime,
                 endTime = livePanchang.tithiEndTime,
                 localizer = localizer,
                 isDark = isDark
@@ -82,14 +90,14 @@ fun TodayPanchangCard(
 
             Spacer(Modifier.height(20.dp))
 
-            // 2×2 Panchang grid
+            // 2×2 grid
             Row(Modifier.fillMaxWidth()) {
                 PanchangElement(
                     modifier = Modifier.weight(1f),
                     icon = moonPhaseEmoji(panchang.tithiIndex),
                     label = (strings["day_tithi"] ?: "Day Tithi").uppercase(),
                     value = localizer.tithiDisplay(panchang),
-                    startTime = panchang.tithiStartTime,
+//                    subvalue = "#${panchang.tithiIndex + 1}",
                     endTime = panchang.tithiEndTime,
                     localizer = localizer,
                     isDark = isDark
@@ -100,7 +108,6 @@ fun TodayPanchangCard(
                     icon = "⭐",
                     label = (strings["nakshatra"] ?: "Nakshatra").uppercase(),
                     value = localizer.nakshatraName(livePanchang),
-                    startTime = livePanchang.nakshatraStartTime,
                     endTime = livePanchang.nakshatraEndTime,
                     localizer = localizer,
                     isDark = isDark
@@ -117,7 +124,6 @@ fun TodayPanchangCard(
                     value = localizer.yogaName(livePanchang),
                     subvalue = localizer.yogaAuspiciousLabel(livePanchang),
                     subvalueColor = if (livePanchang.isYogaAuspicious) AppColors.Auspicious else AppColors.Inauspicious,
-                    startTime = livePanchang.yogaStartTime,
                     endTime = livePanchang.yogaEndTime,
                     localizer = localizer,
                     isDark = isDark
@@ -129,7 +135,6 @@ fun TodayPanchangCard(
                     label = (strings["karana"] ?: "Karana").uppercase(),
                     value = localizer.karanaName(livePanchang),
                     subvalue = "→ ${localizer.karanaNext(livePanchang)}",
-                    startTime = livePanchang.karanaStartTime,
                     endTime = livePanchang.karanaChangeTime,
                     localizer = localizer,
                     isDark = isDark
@@ -164,8 +169,7 @@ fun TodayPanchangCard(
                     localizer.numerals(dateFmt.format(
                         java.util.Calendar.getInstance().apply {
                             set(panchang.date.year,
-                                panchang.date.month.number - 1, panchang.date.day
-                            )
+                                panchang.date.month.number - 1, panchang.date.day)
                         }.time
                     )),
                     style = AppTextStyles.timeSmall
@@ -186,29 +190,44 @@ private fun moonPhaseEmoji(tithiIndex: Int) = when {
     else             -> "🌘"
 }
 
+private val ENGLISH_MONTHS = arrayOf(
+    "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+)
+
+// Returns only the formatted time — callers prepend the localized "until" label.
+private fun endTimeStr(endTime: Instant): String {
+    val tz = TimeZone.currentSystemDefault()
+    val e = endTime.toLocalDateTime(tz)
+    val today = Clock.System.now().toLocalDateTime(tz).date
+    return if (e.date == today)
+        "%02d:%02d".format(e.hour, e.minute)
+    else
+        "%d %s, %02d:%02d".format(
+            e.day,
+            ENGLISH_MONTHS[e.month.number - 1],
+            e.hour, e.minute
+        )
+}
+
 @Composable
 private fun ActualTithiRow(
     label: String,
     tithi: String,
-    startTime: Instant,
     endTime: Instant,
     localizer: PanchangLocalizer,
     isDark: Boolean
 ) {
-    val tz = TimeZone.currentSystemDefault()
-    val s = startTime.toLocalDateTime(tz)
-    val e = endTime.toLocalDateTime(tz)
-    val sameDay = s.date == e.date
-    val timeStr = if (sameDay) "%02d:%02d – %02d:%02d".format(s.hour, s.minute, e.hour, e.minute)
-    else "%d %s, %02d:%02d – %d %s, %02d:%02d".format(
-        s.day, s.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, s.hour, s.minute,
-        e.day, e.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, e.hour, e.minute
-    )
+    val rowShape = RoundedCornerShape(10.dp)
+    val borderColor = if (isDark)
+        AppColors.Primary.copy(alpha = 0.35f)
+    else
+        Color(0xFFCBA35C).copy(alpha = 0.45f)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(rowShape)
+            .border(1.dp, borderColor, rowShape)
             .background(
                 if (isDark) AppColors.SurfaceVariant.copy(alpha = 0.45f)
                 else AppColors.SurfaceVariantLight.copy(alpha = 0.55f)
@@ -216,8 +235,9 @@ private fun ActualTithiRow(
             .padding(horizontal = 10.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
+        val timeStr = "${localizer.untilLabel} ${localizer.numerals(endTimeStr(endTime))}"
         Text(
-            "$tithi  •  ${localizer.numerals(timeStr)}",
+            "$label: $tithi  •  $timeStr",
             style = AppTextStyles.bodySmall.copy(
                 color = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
             ),
@@ -235,7 +255,6 @@ fun PanchangElement(
     value: String,
     subvalue: String? = null,
     subvalueColor: Color? = null,
-    startTime: Instant,
     endTime: Instant,
     localizer: PanchangLocalizer,
     isDark: Boolean
@@ -245,16 +264,6 @@ fun PanchangElement(
     val rangeColor = if (isDark) AppColors.TextSecondary else Color(0xFF4E4238)
     val resolvedSubColor = subvalueColor ?: if (isDark) AppColors.TextMuted else AppColors.TextSecondaryLight
 
-    val tz = TimeZone.currentSystemDefault()
-    val s = startTime.toLocalDateTime(tz)
-    val e = endTime.toLocalDateTime(tz)
-    val sameDay = s.date == e.date
-    val timeStr = if (sameDay) "%02d:%02d – %02d:%02d".format(s.hour, s.minute, e.hour, e.minute)
-    else "%d/%d %02d:%02d – %d/%d %02d:%02d".format(
-        s.day, s.month.number, s.hour, s.minute,
-        e.day, e.month.number, e.hour, e.minute
-    )
-
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, fontSize = 14.sp)
@@ -262,13 +271,26 @@ fun PanchangElement(
             Text(label, style = AppTextStyles.labelSmall.copy(color = labelColor), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.height(6.dp))
-        Text(value, style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = valueColor), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            value,
+            style = AppTextStyles.bodyMedium.copy(
+                fontFamily = InterFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 15.sp,
+                color = valueColor
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
         if (subvalue != null) {
             Spacer(Modifier.height(2.dp))
             Text(subvalue, style = AppTextStyles.bodySmall.copy(color = resolvedSubColor, fontSize = 11.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.height(2.dp))
-        Text(localizer.numerals(timeStr), style = AppTextStyles.timeSmall.copy(fontSize = 11.sp, color = rangeColor))
+        Text(
+            "${localizer.untilLabel} ${localizer.numerals(endTimeStr(endTime))}",
+            style = AppTextStyles.timeSmall.copy(fontSize = 11.sp, color = rangeColor)
+        )
     }
 }
 
