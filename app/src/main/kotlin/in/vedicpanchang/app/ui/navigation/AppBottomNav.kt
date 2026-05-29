@@ -52,9 +52,8 @@ fun AppBottomNav(navController: NavController) {
                 onClick = {
                     if (!selected) {
                         navController.navigate(item.route) {
-                            popUpTo(NavRoutes.HOME) { saveState = true }
+                            popUpTo(NavRoutes.HOME) { inclusive = false }
                             launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 },

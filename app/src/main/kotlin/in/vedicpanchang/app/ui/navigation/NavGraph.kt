@@ -10,7 +10,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -52,10 +51,7 @@ fun VedicPanchangNavGraph(
             val initialRoute = initialState.destination.route
             val targetRoute = targetState.destination.route
             when {
-                isBottomNavTransition(initialRoute, targetRoute) -> {
-                    val forward = isForwardBottomNav(initialRoute, targetRoute)
-                    bottomNavEnter(forward)
-                }
+                isBottomNavTransition(initialRoute, targetRoute) -> bottomNavEnter()
                 isDetailRoute(targetRoute) -> detailEnter()
                 else -> EnterTransition.None
             }
@@ -64,10 +60,7 @@ fun VedicPanchangNavGraph(
             val initialRoute = initialState.destination.route
             val targetRoute = targetState.destination.route
             when {
-                isBottomNavTransition(initialRoute, targetRoute) -> {
-                    val forward = isForwardBottomNav(initialRoute, targetRoute)
-                    bottomNavExit(forward)
-                }
+                isBottomNavTransition(initialRoute, targetRoute) -> bottomNavExit()
                 isDetailRoute(targetRoute) -> detailExitForward()
                 else -> ExitTransition.None
             }
@@ -76,10 +69,7 @@ fun VedicPanchangNavGraph(
             val initialRoute = initialState.destination.route
             val targetRoute = targetState.destination.route
             when {
-                isBottomNavTransition(initialRoute, targetRoute) -> {
-                    val forward = isForwardBottomNav(initialRoute, targetRoute)
-                    bottomNavEnter(forward)
-                }
+                isBottomNavTransition(initialRoute, targetRoute) -> bottomNavEnter()
                 isDetailRoute(initialRoute) -> detailPopEnter()
                 else -> EnterTransition.None
             }
@@ -88,10 +78,7 @@ fun VedicPanchangNavGraph(
             val initialRoute = initialState.destination.route
             val targetRoute = targetState.destination.route
             when {
-                isBottomNavTransition(initialRoute, targetRoute) -> {
-                    val forward = isForwardBottomNav(initialRoute, targetRoute)
-                    bottomNavExit(forward)
-                }
+                isBottomNavTransition(initialRoute, targetRoute) -> bottomNavExit()
                 isDetailRoute(initialRoute) -> detailPopExit()
                 else -> ExitTransition.None
             }
@@ -131,57 +118,26 @@ private fun isDetailRoute(route: String?): Boolean =
     route == NavRoutes.DAY_DETAIL || route == NavRoutes.HELP
 
 private fun isBottomNavTransition(initialRoute: String?, targetRoute: String?): Boolean =
-    bottomNavIndex(initialRoute) >= 0 && bottomNavIndex(targetRoute) >= 0
+    NavRoutes.BOTTOM_NAV_ORDER.contains(initialRoute) && NavRoutes.BOTTOM_NAV_ORDER.contains(targetRoute)
 
-private fun isForwardBottomNav(initialRoute: String?, targetRoute: String?): Boolean =
-    bottomNavIndex(targetRoute) > bottomNavIndex(initialRoute)
+// Simple cross-fade for bottom nav tab switches — slide + fade combined was causing jitter
+private fun bottomNavEnter(): EnterTransition =
+    fadeIn(
+        animationSpec = tween(
+            durationMillis = MotionTokens.MediumDurationMillis,
+            easing = MotionTokens.StandardEasing
+        ),
+        initialAlpha = MotionTokens.BottomNavFadeInAlpha
+    )
 
-private fun bottomNavIndex(route: String?): Int =
-    NavRoutes.BOTTOM_NAV_ORDER.indexOf(route)
-
-private fun AnimatedContentTransitionScope<NavBackStackEntry>.bottomNavEnter(
-    forward: Boolean
-): EnterTransition {
-    val direction = if (forward) 1 else -1
-    val fraction = MotionTokens.BottomNavSlideFraction
-    val slideSpec = tween<IntOffset>(
-        durationMillis = MotionTokens.MediumDurationMillis,
-        easing = MotionTokens.StandardEasing
-    )
-    val fadeSpec = tween<Float>(
-        durationMillis = MotionTokens.MediumDurationMillis,
-        easing = MotionTokens.StandardEasing
-    )
-    return slideInHorizontally(
-        animationSpec = slideSpec,
-        initialOffsetX = { fullWidth -> (fullWidth * fraction).roundToInt() * direction }
-    ) + fadeIn(
-        animationSpec = fadeSpec,
-        initialAlpha = MotionTokens.FadeInStart
-    )
-}
-
-private fun AnimatedContentTransitionScope<NavBackStackEntry>.bottomNavExit(
-    forward: Boolean
-): ExitTransition {
-    val direction = if (forward) -1 else 1
-    val fraction = MotionTokens.BottomNavSlideFraction
-    val slideSpec = tween<IntOffset>(
-        durationMillis = MotionTokens.MediumDurationMillis,
-        easing = MotionTokens.StandardEasing
-    )
-    val fadeSpec = tween<Float>(
-        durationMillis = MotionTokens.MediumDurationMillis,
-        easing = MotionTokens.StandardEasing
-    )
-    return slideOutHorizontally(
-        animationSpec = slideSpec,
-        targetOffsetX = { fullWidth -> (fullWidth * fraction).roundToInt() * direction }
-    ) + fadeOut(
-        animationSpec = fadeSpec,
+private fun bottomNavExit(): ExitTransition =
+    fadeOut(
+        animationSpec = tween(
+            durationMillis = MotionTokens.ShortDurationMillis,
+            easing = MotionTokens.StandardEasing
+        ),
         targetAlpha = MotionTokens.FadeOutEnd
     )
-}
 
 // ── Detail transitions (Calendar → DayDetail) ────────────────────────────────
 //

@@ -17,8 +17,9 @@ object MotionTokens {
     const val DetailEnterDurationMillis = 400
     const val DetailExitDurationMillis  = 250
 
-    const val FadeInStart = 0f
+    // Detail transitions fade in from partial opacity — avoids the harsh "pop" of starting at 0
+    const val FadeInStart = 0.3f
     const val FadeOutEnd  = 0f
 
-    const val BottomNavSlideFraction = 0.08f
+    const val BottomNavFadeInAlpha = 0.5f
 }

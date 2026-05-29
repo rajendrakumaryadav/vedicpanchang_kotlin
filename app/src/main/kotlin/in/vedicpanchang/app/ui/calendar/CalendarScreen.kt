@@ -298,7 +298,7 @@ fun CalendarScreen(
                 onViewDetails = {
                     navController.navigate(
                         NavRoutes.dayDetail("%04d-%02d-%02d".format(selectedDate.year, selectedDate.month.ordinal + 1, selectedDate.day))
-                    )
+                    ) { launchSingleTop = true }
                 },
                 modifier = Modifier.weight(1f)
             )

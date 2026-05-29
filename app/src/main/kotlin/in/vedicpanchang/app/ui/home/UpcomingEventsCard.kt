@@ -76,7 +76,9 @@ fun UpcomingEventsCard(
                     strings = strings,
                     localizer = localizer,
                     onClick = {
-                        navController.navigate(NavRoutes.dayDetail(panchang.date.toString()))
+                        navController.navigate(NavRoutes.dayDetail(panchang.date.toString())) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }

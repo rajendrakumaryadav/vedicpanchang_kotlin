@@ -84,7 +84,7 @@ fun HomeScreen(
         }
         Unit
     }
-    val onSettings = { navController.navigate(NavRoutes.SETTINGS) }
+    val onSettings = { navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true } }
 
     Scaffold(
         bottomBar = {
@@ -122,7 +122,7 @@ fun HomeScreen(
                     HomeDateHeader(
                         strings = strings,
                         locale = locale,
-                        onCalendarTap = { navController.navigate(NavRoutes.CALENDAR) }
+                        onCalendarTap = { navController.navigate(NavRoutes.CALENDAR) { launchSingleTop = true } }
                     )
                 }
 
