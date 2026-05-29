@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -330,6 +331,7 @@ private fun AuspiciousMuhurtasCard(
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val vijaya = panchang.auspiciousMuhurtas.find { it.id == "vijaya_muhurta" }?.range
     val godhuli = panchang.auspiciousMuhurtas.find { it.id == "godhuli_muhurta" }?.range
+    val now = remember { Clock.System.now() }
 
     Column(
         modifier = Modifier
@@ -344,16 +346,16 @@ private fun AuspiciousMuhurtasCard(
             style = AppTextStyles.saffronLabel.copy(fontSize = 14.sp)
         )
         Spacer(Modifier.height(16.dp))
-        MuhurtaRow(icon = "🙏", name = strings["brahma_muhurta"] ?: "Brahma Muhurta",   desc = strings["best_meditation"] ?: "Best for meditation & prayer",        range = panchang.brahmaMuhurta,  barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
+        MuhurtaRow(icon = "🙏", name = strings["brahma_muhurta"] ?: "Brahma Muhurta",   desc = strings["best_meditation"] ?: "Best for meditation & prayer",        range = panchang.brahmaMuhurta,  barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark, isCurrent = now in panchang.brahmaMuhurta.start..panchang.brahmaMuhurta.end)
         Spacer(Modifier.height(14.dp))
-        MuhurtaRow(icon = "⚡", name = strings["abhijit_muhurta"] ?: "Abhijit Muhurta", desc = strings["best_beginnings"] ?: "Best for new beginnings",             range = panchang.abhijitMuhurta, barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
+        MuhurtaRow(icon = "⚡", name = strings["abhijit_muhurta"] ?: "Abhijit Muhurta", desc = strings["best_beginnings"] ?: "Best for new beginnings",             range = panchang.abhijitMuhurta, barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark, isCurrent = now in panchang.abhijitMuhurta.start..panchang.abhijitMuhurta.end)
         if (vijaya != null) {
             Spacer(Modifier.height(14.dp))
-            MuhurtaRow(icon = "🏆", name = strings["vijaya_muhurta"] ?: "Vijaya Muhurta",   desc = strings["vijaya_note"] ?: "Best for success and winning efforts", range = vijaya,                  barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
+            MuhurtaRow(icon = "🏆", name = strings["vijaya_muhurta"] ?: "Vijaya Muhurta",   desc = strings["vijaya_note"] ?: "Best for success and winning efforts", range = vijaya,                  barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark, isCurrent = now in vijaya.start..vijaya.end)
         }
         if (godhuli != null) {
             Spacer(Modifier.height(14.dp))
-            MuhurtaRow(icon = "🐄", name = strings["godhuli_muhurta"] ?: "Godhuli Muhurta",  desc = strings["godhuli_note"] ?: "Auspicious twilight window",         range = godhuli,                 barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark)
+            MuhurtaRow(icon = "🐄", name = strings["godhuli_muhurta"] ?: "Godhuli Muhurta",  desc = strings["godhuli_note"] ?: "Auspicious twilight window",         range = godhuli,                 barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark, isCurrent = now in godhuli.start..godhuli.end)
         }
     }
 }
@@ -367,6 +369,7 @@ private fun InauspiciousPeriodsCard(
     localizer: PanchangLocalizer
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val now = remember { Clock.System.now() }
 
     Column(
         modifier = Modifier
@@ -381,11 +384,11 @@ private fun InauspiciousPeriodsCard(
             style = AppTextStyles.saffronLabel.copy(fontSize = 14.sp)
         )
         Spacer(Modifier.height(16.dp))
-        MuhurtaRow(icon = "⚠️", name = strings["rahu_kaal"] ?: "Rahu Kaal",     desc = strings["avoid_auspicious"] ?: "Avoid auspicious activities", range = panchang.rahuKaal,   barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark)
+        MuhurtaRow(icon = "⚠️", name = strings["rahu_kaal"] ?: "Rahu Kaal",     desc = strings["avoid_auspicious"] ?: "Avoid auspicious activities", range = panchang.rahuKaal,   barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark, isCurrent = now in panchang.rahuKaal.start..panchang.rahuKaal.end)
         Spacer(Modifier.height(14.dp))
-        MuhurtaRow(icon = "💀", name = strings["yamaganda"] ?: "Yamaganda",     desc = strings["period_yama"] ?: "Period of Yama — inauspicious",    range = panchang.yamaganda,  barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark)
+        MuhurtaRow(icon = "💀", name = strings["yamaganda"] ?: "Yamaganda",     desc = strings["period_yama"] ?: "Period of Yama — inauspicious",    range = panchang.yamaganda,  barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark, isCurrent = now in panchang.yamaganda.start..panchang.yamaganda.end)
         Spacer(Modifier.height(14.dp))
-        MuhurtaRow(icon = "🪐", name = strings["gulika_kaal"] ?: "Gulika Kaal", desc = strings["saturn_period"] ?: "Saturn's inauspicious period",   range = panchang.gulikaKaal, barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark)
+        MuhurtaRow(icon = "🪐", name = strings["gulika_kaal"] ?: "Gulika Kaal", desc = strings["saturn_period"] ?: "Saturn's inauspicious period",   range = panchang.gulikaKaal, barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark, isCurrent = now in panchang.gulikaKaal.start..panchang.gulikaKaal.end)
     }
 }
 
@@ -400,7 +403,8 @@ private fun MuhurtaRow(
     barColor: Color,
     timeColor: Color,
     localizer: PanchangLocalizer,
-    isDark: Boolean
+    isDark: Boolean,
+    isCurrent: Boolean = false
 ) {
     val tz = TimeZone.currentSystemDefault()
     val s = range.start.toLocalDateTime(tz)
@@ -415,8 +419,24 @@ private fun MuhurtaRow(
     )
     val textPrimary = MaterialTheme.colorScheme.onSurface
     val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val highlightShape = RoundedCornerShape(8.dp)
 
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (isCurrent) Modifier
+                    .clip(highlightShape)
+                    .background(Color(0xFFFF9800).copy(alpha = 0.12f))
+                    .border(1.dp, Color(0xFFFF9800).copy(alpha = 0.5f), highlightShape)
+                else Modifier
+            )
+            .padding(
+                horizontal = if (isCurrent) 8.dp else 0.dp,
+                vertical = if (isCurrent) 6.dp else 0.dp
+            ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(
             modifier = Modifier
                 .width(4.dp)
@@ -465,6 +485,7 @@ private fun DaytimeMuhurtasCard(
     var expanded by remember { mutableStateOf(false) }
     val muhurtas = panchang.daytimeMuhurtas
     val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    val now = remember { Clock.System.now() }
 
     Column(
         modifier = Modifier
@@ -513,6 +534,7 @@ private fun DaytimeMuhurtasCard(
                                 range = muhurta.range,
                                 localizer = localizer,
                                 isDark = isDark,
+                                isCurrent = now in muhurta.range.start..muhurta.range.end,
                                 modifier = Modifier.weight(1f)
                             )
                             if (colIdx == 0 && pair.size == 2) Spacer(Modifier.width(8.dp))
@@ -535,6 +557,7 @@ private fun DaytimeMuhurtaCell(
     range: TimeRange,
     localizer: PanchangLocalizer,
     isDark: Boolean,
+    isCurrent: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val tz = TimeZone.currentSystemDefault()
@@ -544,11 +567,19 @@ private fun DaytimeMuhurtaCell(
         "%02d:%02d – %02d:%02d".format(s.hour, s.minute, e.hour, e.minute)
     )
     val textPrimary = MaterialTheme.colorScheme.onSurface
+    val cellShape = RoundedCornerShape(12.dp)
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clip(cellShape)
+            .background(
+                if (isCurrent) Color(0xFFFF9800).copy(alpha = 0.12f)
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+            .then(
+                if (isCurrent) Modifier.border(1.dp, Color(0xFFFF9800).copy(alpha = 0.5f), cellShape)
+                else Modifier
+            )
             .padding(horizontal = 10.dp, vertical = 10.dp)
     ) {
         Column {
