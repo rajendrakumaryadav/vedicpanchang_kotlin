@@ -4,9 +4,9 @@ A production-grade Android app for Vedic Panchang calculations, Kundali (horosco
 
 ## Screenshots
 
-| Home | Calendar | Horoscope | Settings |
-|------|----------|-----------|----------|
-| ![Home](images/Screenshot_20260528_152414.png) | ![Calendar](images/Screenshot_20260528_152423.png) | ![Horoscope](images/Screenshot_20260528_152430.png) | ![Settings](images/Screenshot_20260528_152438.png) |
+| Home                     | Calendar                              | Horoscope                        | Settings                              |
+|--------------------------|---------------------------------------|----------------------------------|---------------------------------------|
+| ![Home](images/Home.png) | ![Calendar](images/Calendar-Dark.png) | ![Horoscope](images/Kundali.png) | ![Settings](images/Setting-Light.png) |
 
 ## Features
 
