@@ -4,9 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,17 +84,23 @@ private fun NavamshaComparisonTable(
                     modifier = Modifier.weight(1f)
                 )
             }
-            Divider(color = AppColors.CardBorder.copy(alpha = 0.4f), modifier = Modifier.padding(vertical = 6.dp))
+            HorizontalDivider(color = AppColors.CardBorder.copy(alpha = 0.4f), modifier = Modifier.padding(vertical = 6.dp))
 
             chart.planets.forEachIndexed { index, planet ->
                 val navamsha = chart.navamshaData.getOrNull(index) ?: return@forEachIndexed
-                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Row(Modifier.width(90.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(planet.symbol, style = AppTextStyles.bodyMedium)
-                        Spacer(Modifier.width(4.dp))
+                val isLast = index == chart.planets.lastIndex
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(Modifier.width(96.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(planet.symbol, style = AppTextStyles.bodySmall)
+                        Spacer(Modifier.width(5.dp))
                         Text(
                             localizer.planetName(planet.name),
-                            style = AppTextStyles.bodySmall,
+                            style = AppTextStyles.bodySmall.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
                             maxLines = 1
                         )
                     }
@@ -106,10 +112,14 @@ private fun NavamshaComparisonTable(
                     Text(
                         localizer.signNameFromEnglish(navamsha.signName),
                         style = AppTextStyles.bodySmall.copy(
-                            color = if (isDark) AppColors.Secondary else AppColors.SecondaryOnLight
+                            color = if (isDark) AppColors.Secondary else AppColors.SecondaryOnLight,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
                         ),
                         modifier = Modifier.weight(1f)
                     )
+                }
+                if (!isLast) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                 }
             }
         }

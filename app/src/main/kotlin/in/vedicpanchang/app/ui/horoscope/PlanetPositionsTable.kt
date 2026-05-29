@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +28,7 @@ fun PlanetPositionsTable(
     localizer: HoroscopeLocalizer
 ) {
     val isDark = isSystemInDarkTheme()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -37,80 +38,162 @@ fun PlanetPositionsTable(
             .padding(16.dp)
     ) {
         Column {
-            Text(strings["planetary_positions"] ?: "Planetary Positions (Navagraha)", style = AppTextStyles.saffronLabel)
-            Spacer(Modifier.height(12.dp))
+            Text(strings["planetary_positions"] ?: "Navagraha Positions", style = AppTextStyles.saffronLabel)
+            Spacer(Modifier.height(14.dp))
 
-            // Header
-            PlanetRow(
-                planet = strings["planet_col"] ?: "Planet",
-                sign = strings["sign_col"] ?: "Sign",
-                deg = strings["deg_col"] ?: "Deg",
-                house = strings["house_col"] ?: "H",
-                nakshatra = strings["nakshatra_col"] ?: "Nakshatra",
-                isHeader = true,
-                isDark = isDark
-            )
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 4.dp))
-
-            chart.planets.forEach { p ->
-                PlanetRow(
-                    planet = localizer.planetName(p.name) + (if (p.isRetrograde) " ${strings["retrograde"] ?: "(R)"}" else ""),
-                    sign = localizer.signNameFromEnglish(p.signName),
-                    deg = "%.1f°".format(p.degreeInSign),
-                    house = "${p.houseNumber}",
-                    nakshatra = localizer.nakshatraName(p.nakshatraName),
-                    planetData = p,
-                    isDark = isDark
-                )
+            chart.planets.chunked(2).forEach { pair ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    pair.forEach { planet ->
+                        PlanetCard(
+                            planet = planet,
+                            localizer = localizer,
+                            isDark = isDark,
+                            strings = strings,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
+                }
+                Spacer(Modifier.height(8.dp))
             }
 
-            // Lagna row
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 2.dp))
-            PlanetRow(
-                planet = strings["lagna"] ?: "Lagna",
-                sign = localizer.signNameFromEnglish(chart.lagnaSignName),
-                deg = "%.1f°".format(chart.lagnaDegreeInSign),
-                house = "1",
-                nakshatra = localizer.nakshatraName(chart.lagnaNakshatraName),
-                isLagna = true,
-                isDark = isDark
+            // Lagna as a standalone full-width card
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                modifier = Modifier.padding(vertical = 4.dp)
             )
+            LagnaCard(chart = chart, localizer = localizer, strings = strings)
         }
     }
 }
 
 @Composable
-private fun PlanetRow(
-    planet: String,
-    sign: String,
-    deg: String,
-    house: String,
-    nakshatra: String,
-    isHeader: Boolean = false,
-    isLagna: Boolean = false,
-    planetData: PlanetData? = null,
-    isDark: Boolean
+private fun PlanetCard(
+    planet: PlanetData,
+    localizer: HoroscopeLocalizer,
+    strings: Map<String, String>,
+    isDark: Boolean,
+    modifier: Modifier
 ) {
-    val textStyle = if (isHeader) AppTextStyles.labelSmall else AppTextStyles.bodySmall
-    val planetColor = when {
-        isHeader -> MaterialTheme.colorScheme.onSurface
-        isLagna  -> AppColors.Primary
-        planetData != null -> getPlanetColor(planetData.name, isDark)
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically
+    val color = getPlanetColor(planet.name, isDark)
+    val retroLabel = strings["retrograde"] ?: "(R)"
+
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(color.copy(alpha = 0.07f))
+            .padding(horizontal = 10.dp, vertical = 10.dp)
     ) {
-        Text(planet, style = textStyle.copy(color = planetColor, fontWeight = if (isHeader || isLagna) FontWeight.Bold else FontWeight.Normal), modifier = Modifier.width(72.dp))
-        Text(sign, style = textStyle, modifier = Modifier.width(64.dp))
-        Text(deg, style = textStyle.copy(fontFamily = AppTextStyles.timeSmall.fontFamily, fontSize = 10.sp), modifier = Modifier.width(40.dp))
-        Text(house, style = textStyle, modifier = Modifier.width(20.dp))
-        Text(nakshatra, style = textStyle, modifier = Modifier.weight(1f))
+        // Symbol + name header
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(planet.symbol, style = AppTextStyles.bodyLarge)
+            Spacer(Modifier.width(6.dp))
+            Column {
+                Text(
+                    localizer.planetName(planet.name),
+                    style = AppTextStyles.labelSmall.copy(
+                        color = color,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                if (planet.isRetrograde) {
+                    Text(
+                        retroLabel,
+                        style = AppTextStyles.bodySmall.copy(
+                            fontSize = 9.sp,
+                            color = AppColors.Inauspicious
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(6.dp))
+        HorizontalDivider(color = color.copy(alpha = 0.25f), thickness = 0.5.dp)
+        Spacer(Modifier.height(6.dp))
+
+        // Sign + House
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                localizer.signNameFromEnglish(planet.signName),
+                style = AppTextStyles.bodySmall.copy(fontWeight = FontWeight.Medium),
+                maxLines = 1
+            )
+            Text(
+                "  H${planet.houseNumber}",
+                style = AppTextStyles.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            )
+        }
+
+        // Degree
+        Text(
+            planet.degreeStr,
+            style = AppTextStyles.timeSmall.copy(fontSize = 11.sp)
+        )
+
+        // Nakshatra
+        Text(
+            localizer.nakshatraName(planet.nakshatraName),
+            style = AppTextStyles.bodySmall.copy(
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            ),
+            maxLines = 1
+        )
     }
 }
 
-private fun getPlanetColor(name: String, isDark: Boolean): Color = when (name) {
+@Composable
+private fun LagnaCard(
+    chart: HoroscopeModel,
+    localizer: HoroscopeLocalizer,
+    strings: Map<String, String>
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(AppColors.Primary.copy(alpha = 0.08f))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("⬆", style = AppTextStyles.bodyLarge.copy(color = AppColors.Primary))
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                strings["lagna"] ?: "Lagna (Ascendant)",
+                style = AppTextStyles.labelSmall.copy(color = AppColors.Primary, fontWeight = FontWeight.Bold)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    localizer.signNameFromEnglish(chart.lagnaSignName),
+                    style = AppTextStyles.bodySmall.copy(fontWeight = FontWeight.Medium)
+                )
+                Text(
+                    "  H1",
+                    style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                )
+            }
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                "%.1f°".format(chart.lagnaDegreeInSign),
+                style = AppTextStyles.timeSmall.copy(fontSize = 12.sp)
+            )
+            Text(
+                localizer.nakshatraName(chart.lagnaNakshatraName),
+                style = AppTextStyles.bodySmall.copy(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            )
+        }
+    }
+}
+
+internal fun getPlanetColor(name: String, isDark: Boolean): Color = when (name) {
     "Sun"     -> AppColors.SunColor
     "Moon"    -> AppColors.MoonColor
     "Mars"    -> AppColors.Inauspicious

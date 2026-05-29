@@ -370,7 +370,7 @@ private fun ChartSummaryCard(
                 label = strings["born"] ?: "Born",
                 value = "$birthDate\n${chart.birthDetails.locationName}"
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
 
             Row {
                 SignBox(
@@ -401,11 +401,19 @@ private fun ChartSummaryCard(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            Spacer(Modifier.height(16.dp))
             Text(strings["chart_insights"] ?: "Chart Insights", style = AppTextStyles.saffronLabel)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
 
-            chart.planets.forEach { planet ->
+            chart.planets.forEachIndexed { index, planet ->
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 2.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                    )
+                }
                 PlanetNote(planet = planet, localizer = localizer)
             }
         }
@@ -439,11 +447,12 @@ private fun SignBox(
             .background(color.copy(alpha = 0.08f))
             .padding(10.dp)
     ) {
-        Text(label, style = AppTextStyles.labelSmall.copy(fontSize = 8.sp))
+        Text(label, style = AppTextStyles.labelSmall.copy(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)))
+        Spacer(Modifier.height(4.dp))
+        Text(sign, style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = color))
         Spacer(Modifier.height(2.dp))
-        Text(sign, style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = color, fontSize = 12.sp))
-        Text("%.1f°".format(degree), style = AppTextStyles.timeSmall.copy(fontSize = 10.sp))
-        Text(nakshatra, style = AppTextStyles.bodySmall.copy(fontSize = 9.sp))
+        Text("%.1f°".format(degree), style = AppTextStyles.timeSmall.copy(fontSize = 11.sp))
+        Text(nakshatra, style = AppTextStyles.bodySmall.copy(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)))
     }
 }
 
@@ -455,12 +464,13 @@ private fun PlanetNote(
     val note = localizer.planetNote(planet)
     if (note.isBlank()) return
 
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.Top) {
         Text(planet.symbol, style = AppTextStyles.bodyMedium)
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
-            Text(localizer.planetPositionLabel(planet), style = AppTextStyles.labelSmall.copy(fontSize = 11.sp))
-            Text(note, style = AppTextStyles.bodySmall.copy(fontSize = 10.sp))
+            Text(localizer.planetPositionLabel(planet), style = AppTextStyles.labelSmall)
+            Spacer(Modifier.height(2.dp))
+            Text(note, style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)))
         }
     }
 }
