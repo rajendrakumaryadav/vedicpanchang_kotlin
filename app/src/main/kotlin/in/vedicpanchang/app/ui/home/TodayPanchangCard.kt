@@ -19,8 +19,11 @@ import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import androidx.compose.ui.graphics.luminance
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -160,7 +163,9 @@ fun TodayPanchangCard(
                 Text(
                     localizer.numerals(dateFmt.format(
                         java.util.Calendar.getInstance().apply {
-                            set(panchang.date.year, panchang.date.monthNumber - 1, panchang.date.dayOfMonth)
+                            set(panchang.date.year,
+                                panchang.date.month.number - 1, panchang.date.day
+                            )
                         }.time
                     )),
                     style = AppTextStyles.timeSmall
@@ -196,8 +201,8 @@ private fun ActualTithiRow(
     val sameDay = s.date == e.date
     val timeStr = if (sameDay) "%02d:%02d – %02d:%02d".format(s.hour, s.minute, e.hour, e.minute)
     else "%d %s, %02d:%02d – %d %s, %02d:%02d".format(
-        s.dayOfMonth, s.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, s.hour, s.minute,
-        e.dayOfMonth, e.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, e.hour, e.minute
+        s.day, s.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, s.hour, s.minute,
+        e.day, e.month.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }, e.hour, e.minute
     )
 
     Box(
@@ -246,8 +251,8 @@ fun PanchangElement(
     val sameDay = s.date == e.date
     val timeStr = if (sameDay) "%02d:%02d – %02d:%02d".format(s.hour, s.minute, e.hour, e.minute)
     else "%d/%d %02d:%02d – %d/%d %02d:%02d".format(
-        s.dayOfMonth, s.monthNumber, s.hour, s.minute,
-        e.dayOfMonth, e.monthNumber, e.hour, e.minute
+        s.day, s.month.number, s.hour, s.minute,
+        e.day, e.month.number, e.hour, e.minute
     )
 
     Column(modifier = modifier) {

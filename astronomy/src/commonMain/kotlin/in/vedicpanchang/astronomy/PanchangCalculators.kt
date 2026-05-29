@@ -1,6 +1,6 @@
 package `in`.vedicpanchang.astronomy
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.math.floor
 
 // ─── Tithi ───────────────────────────────────────────────────────────────────

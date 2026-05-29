@@ -2,7 +2,7 @@ package `in`.vedicpanchang.app.data.model
 
 import `in`.vedicpanchang.astronomy.MuhurtaPeriod
 import `in`.vedicpanchang.astronomy.TimeRange
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 
 /** Complete Vedic calendar data for one day and location. */

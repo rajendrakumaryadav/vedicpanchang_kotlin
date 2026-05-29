@@ -2,6 +2,7 @@ package `in`.vedicpanchang.astronomy
 
 import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 
 /**
  * Hora (Planetary Hour) calculator based on the Chaldean order.
@@ -28,7 +29,7 @@ object HoraCalculator {
         lat: Double,
         lon: Double
     ): List<HoraSlot> {
-        val nextDay = LocalDate(date.year, date.monthNumber, date.dayOfMonth + 1)
+        val nextDay = LocalDate(date.year, date.month.number, date.day + 1)
         val nextSunrise = AstronomyService.sunriseSunset(nextDay, lat, lon).sunrise
         return calculate(sunrise, sunset, weekday, nextSunrise)
     }

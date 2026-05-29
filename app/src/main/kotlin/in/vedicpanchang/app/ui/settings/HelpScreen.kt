@@ -35,7 +35,7 @@ import `in`.vedicpanchang.app.viewmodel.PanchangUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
 import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
 import `in`.vedicpanchang.astronomy.AstronomyService
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.text.SimpleDateFormat

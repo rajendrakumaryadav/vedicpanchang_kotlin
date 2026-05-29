@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
@@ -148,7 +149,7 @@ class PanchangViewModel @Inject constructor(
                 val tz = TimeZone.currentSystemDefault()
                 val today = Clock.System.now().toLocalDateTime(tz).date
                 val noon = kotlinx.datetime.LocalDateTime(
-                    today.year, today.monthNumber, today.dayOfMonth, 12, 0, 0
+                    today.year, today.month.number, today.day, 12, 0, 0
                 ).toInstant(tz)
                 val panchang = panchangService.calculate(
                     date = today,

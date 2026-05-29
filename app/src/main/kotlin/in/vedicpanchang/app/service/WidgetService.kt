@@ -7,11 +7,14 @@ import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.widget.PanchangWidgetProvider
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 /**
  * Pushes today's Panchang data to the Android home-screen widget via SharedPreferences.
@@ -35,16 +38,24 @@ class WidgetService @Inject constructor(
             val sunsetLocal = panchang.sunset.toLocalDateTime(tz)
             val dateLocal = panchang.date
 
-            prefs.edit()
-                .putString("widget_tithi", panchang.tithiDisplay)
-                .putString("widget_nakshatra", panchang.nakshatraName)
-                .putString("widget_yoga", panchang.yogaName)
-                .putString("widget_sunrise", formatTime(sunriseLocal.hour, sunriseLocal.minute))
-                .putString("widget_sunset", formatTime(sunsetLocal.hour, sunsetLocal.minute))
-                .putString("widget_location", panchang.locationName)
-                .putString("widget_date", formatDate(dateLocal.year, dateLocal.monthNumber, dateLocal.dayOfMonth))
-                .putString("widget_festival", if (panchang.hasFestivals) panchang.primaryFestival ?: "" else "")
-                .apply()
+            prefs.edit {
+                putString("widget_tithi", panchang.tithiDisplay)
+                    .putString("widget_nakshatra", panchang.nakshatraName)
+                    .putString("widget_yoga", panchang.yogaName)
+                    .putString("widget_sunrise", formatTime(sunriseLocal.hour, sunriseLocal.minute))
+                    .putString("widget_sunset", formatTime(sunsetLocal.hour, sunsetLocal.minute))
+                    .putString("widget_location", panchang.locationName)
+                    .putString(
+                        "widget_date", formatDate(
+                            dateLocal.year,
+                            dateLocal.month.number, dateLocal.day
+                        )
+                    )
+                    .putString(
+                        "widget_festival",
+                        if (panchang.hasFestivals) panchang.primaryFestival ?: "" else ""
+                    )
+            }
 
             val manager = AppWidgetManager.getInstance(context)
             val component = ComponentName(context, PanchangWidgetProvider::class.java)

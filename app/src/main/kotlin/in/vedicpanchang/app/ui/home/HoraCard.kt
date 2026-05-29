@@ -22,7 +22,7 @@ import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import androidx.compose.ui.graphics.luminance
 import `in`.vedicpanchang.astronomy.HoraCalculator
 import `in`.vedicpanchang.astronomy.HoraSlot
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.toLocalDateTime
@@ -71,31 +71,25 @@ fun HoraCard(
             Text(strings["hora"] ?: "Hora (Planetary Hours)", style = AppTextStyles.saffronLabel)
             Spacer(Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                HoraCell(
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                HoraRow(
                     slot = prevSlot,
                     label = strings["previous_hora"] ?: "Previous",
                     isCurrent = false,
-                    modifier = Modifier.weight(1f),
                     localizer = localizer,
                     isDark = isDark
                 )
-                HoraCell(
+                HoraRow(
                     slot = currentSlot,
                     label = strings["current_hora"] ?: "Current",
                     isCurrent = true,
-                    modifier = Modifier.weight(1f),
                     localizer = localizer,
                     isDark = isDark
                 )
-                HoraCell(
+                HoraRow(
                     slot = nextSlot,
                     label = strings["next_hora"] ?: "Next",
                     isCurrent = false,
-                    modifier = Modifier.weight(1f),
                     localizer = localizer,
                     isDark = isDark
                 )
@@ -105,11 +99,10 @@ fun HoraCard(
 }
 
 @Composable
-private fun HoraCell(
+private fun HoraRow(
     slot: HoraSlot?,
     label: String,
     isCurrent: Boolean,
-    modifier: Modifier,
     localizer: PanchangLocalizer,
     isDark: Boolean
 ) {
@@ -122,49 +115,60 @@ private fun HoraCell(
         else                 -> AppColors.SurfaceVariantLight
     }
 
-    Box(
-        modifier = modifier
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(bgColor)
             .then(if (isCurrent) Modifier.border(1.dp, AppColors.Primary, RoundedCornerShape(10.dp)) else Modifier)
-            .padding(horizontal = 8.dp, vertical = 10.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        if (slot == null) {
-            Text("—", style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
-        } else {
+        // Planet symbol / logo
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = slot?.symbol ?: "—",
+                style = AppTextStyles.bodySmall.copy(fontSize = 24.sp)
+            )
+        }
+
+        Spacer(Modifier.width(12.dp))
+
+        // Label + planet name
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = AppTextStyles.labelSmall.copy(color = accentColor, fontSize = 10.sp)
+            )
+            Text(
+                text = if (slot != null) localizer.planetName(slot.planet) else "—",
+                style = AppTextStyles.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
+                maxLines = 1
+            )
+        }
+
+        // Time range FROM–TO
+        if (slot != null) {
             val tz = TimeZone.currentSystemDefault()
             val startLocal = slot.start.toLocalDateTime(tz)
             val endLocal   = slot.end.toLocalDateTime(tz)
             val timeRange  = localizer.numerals(
-                "%02d:%02d\n%02d:%02d".format(startLocal.hour, startLocal.minute, endLocal.hour, endLocal.minute)
+                "%02d:%02d – %02d:%02d".format(startLocal.hour, startLocal.minute, endLocal.hour, endLocal.minute)
             )
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .border(1.dp, borderColor, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
                 Text(
-                    label,
-                    style = AppTextStyles.labelSmall.copy(color = accentColor, fontSize = 9.sp)
+                    text = timeRange,
+                    style = AppTextStyles.timeSmall.copy(color = accentColor, fontSize = 11.sp),
+                    textAlign = TextAlign.End
                 )
-                Spacer(Modifier.height(4.dp))
-                Text(slot.symbol, style = AppTextStyles.bodySmall.copy(fontSize = 20.sp))
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    localizer.planetName(slot.planet),
-                    style = AppTextStyles.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 12.sp),
-                    maxLines = 1
-                )
-                Spacer(Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .border(1.dp, borderColor, RoundedCornerShape(6.dp))
-                        .padding(horizontal = 6.dp, vertical = 3.dp)
-                ) {
-                    Text(
-                        timeRange,
-                        style = AppTextStyles.timeSmall.copy(color = accentColor, fontSize = 9.sp),
-                        textAlign = TextAlign.Center
-                    )
-                }
             }
         }
     }

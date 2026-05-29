@@ -4,9 +4,12 @@ import `in`.vedicpanchang.app.data.datasource.FestivalData
 import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.astronomy.*
 import kotlinx.datetime.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 import kotlin.math.floor
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Instant
 
 /**
  * High-level service that orchestrates all Panchang calculations
@@ -20,12 +23,13 @@ class PanchangService @Inject constructor() {
 
     private val cache = LinkedHashMap<String, PanchangModel>()
 
+    @Synchronized
     fun calculate(
         date: LocalDate,
         lat: Double,
         lon: Double,
         locationName: String,
-        observationInstant: Instant? = null
+        observationInstant: kotlin.time.Instant? = null
     ): PanchangModel {
         val key = cacheKey(date, lat, lon, locationName, observationInstant)
         cache[key]?.let { return it }
@@ -45,7 +49,7 @@ class PanchangService @Inject constructor() {
             val sunriseMoonLon = AstronomyService.moonLongitudeSidereal(sunriseJd)
             val sunriseTithiIdx = TithiCalculator.calculateTithiIndex(sunriseSunLon, sunriseMoonLon)
             val sunriseTithiEnd = TithiCalculator.tithiEndTime(sunrise, sunriseTithiIdx)
-            val localNoon = LocalDateTime(date.year, date.monthNumber, date.dayOfMonth, 12, 0, 0)
+            val localNoon = LocalDateTime(date.year, date.month.number, date.day, 12, 0, 0)
                 .toInstant(TimeZone.currentSystemDefault())
             if (sunriseTithiEnd < localNoon) localNoon else sunrise
         }
@@ -106,7 +110,7 @@ class PanchangService @Inject constructor() {
         // 11. Festivals
         val festivals = FestivalData.getFestivals(
             tithiIndex = tithiIdx,
-            month = date.monthNumber,
+            month = date.month.number,
             sunLon = sunLon,
             moonLon = moonLon
         )

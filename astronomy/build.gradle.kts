@@ -4,7 +4,7 @@ plugins {
 }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "in.vedicpanchang.astronomy"
         compileSdk = 37
         minSdk = 21
@@ -22,11 +22,11 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.datetime)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
-        androidUnitTest {
-            dependsOn(commonTest.get())
-        }
+//        commonTest.dependencies {
+//            implementation(libs.kotlin.test)
+//        }
+//        androidUnitTest {
+//            dependsOn(commonTest.get())
+//        }
     }
 }

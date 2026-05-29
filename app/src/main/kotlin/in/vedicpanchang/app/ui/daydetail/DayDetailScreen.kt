@@ -43,7 +43,9 @@ import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
 import `in`.vedicpanchang.astronomy.TimeRange
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.number
 import kotlin.time.Clock
 import java.text.SimpleDateFormat
 import java.util.Locale as JavaLocale
@@ -69,9 +71,13 @@ fun DayDetailScreen(
     }
 
     var panchang by remember { mutableStateOf<PanchangModel?>(null) }
+    var panchangLoadFailed by remember { mutableStateOf(false) }
+    var retryTrigger by remember { mutableIntStateOf(0) }
     val location = (panchangState.location as? LocationUiState.Success)?.location
-    LaunchedEffect(date, location) {
-        panchang = panchangVm.getPanchangForDate(date, location)
+    LaunchedEffect(date, location, retryTrigger) {
+        panchangLoadFailed = false
+        val result = panchangVm.getPanchangForDate(date, location)
+        if (result != null) panchang = result else panchangLoadFailed = true
     }
 
     Scaffold(
@@ -84,7 +90,7 @@ fun DayDetailScreen(
                         val javaLocale = if (locale == "hi" || locale == "sa")
                             JavaLocale("hi", "IN") else JavaLocale.ENGLISH
                         val cal = java.util.Calendar.getInstance()
-                        cal.set(date.year, date.monthNumber - 1, date.dayOfMonth)
+                        cal.set(date.year, date.month.number - 1, date.day)
                         val dateStr = localizer.numerals(
                             SimpleDateFormat("d MMM yyyy", javaLocale).format(cal.time)
                         )
@@ -144,7 +150,17 @@ fun DayDetailScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         val p = panchang
-        if (p == null) {
+        if (p == null && panchangLoadFailed) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(strings["error_loading"] ?: "Could not load panchang")
+                    Spacer(Modifier.height(12.dp))
+                    androidx.compose.material3.Button(onClick = { retryTrigger++ }) {
+                        Text(strings["retry"] ?: "Retry")
+                    }
+                }
+            }
+        } else if (p == null) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = AppColors.Primary)
             }
@@ -225,7 +241,7 @@ private fun VedicCalendarSection(
         localizer.vikramSamvatYear(panchang.date.year, monthNum).toString()
     )
     val shakaYear = localizer.numerals(
-        localizer.shakaSamvatYear(panchang.date.year, monthNum, panchang.date.dayOfMonth).toString()
+        localizer.shakaSamvatYear(panchang.date.year, monthNum, panchang.date.day).toString()
     )
     val vedicDateLine = localizer.vedicDateLine(panchang)
 

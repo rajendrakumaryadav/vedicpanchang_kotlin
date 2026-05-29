@@ -1,6 +1,6 @@
 package `in`.vedicpanchang.app.data.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 
 data class CustomCalendarNote(

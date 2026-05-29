@@ -1,8 +1,9 @@
 package `in`.vedicpanchang.astronomy
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.*
 
@@ -202,7 +203,7 @@ object AstronomyService {
         fun moonAltitudeAt(jd: Double): Double =
             altitudeCache.getOrPut(jdKey(jd)) { moonAltitudeDegrees(jd, lat, lon) }
 
-        val jdStart = julianDay(date.year, date.monthNumber, date.dayOfMonth, 0.0)
+        val jdStart = julianDay(date.year, date.month.number, date.day, 0.0)
         var riseJd: Double? = null
         var setJd: Double? = null
 
