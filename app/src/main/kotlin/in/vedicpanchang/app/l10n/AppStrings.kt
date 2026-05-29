@@ -178,7 +178,10 @@ object AppStrings {
         "purvahna" to "Purvahna", "madhyahna" to "Madhyahna",
         "aparahna" to "Aparahna", "sayahna" to "Sayahna",
         "pradosha" to "Pradosha", "nishitha" to "Nishitha",
-        "triyama" to "Triyama", "ushah" to "Ushah"
+        "triyama" to "Triyama", "ushah" to "Ushah",
+        "ok" to "OK", "cancel" to "Cancel", "retry" to "Retry",
+        "error_loading" to "Could not load panchang",
+        "previous_hora" to "Previous", "next_hora" to "Next"
     )
 
     private val HI: Map<String, String> = mapOf(
@@ -295,7 +298,10 @@ object AppStrings {
         "purvahna" to "पूर्वाह्न", "madhyahna" to "मध्याह्न",
         "aparahna" to "अपराह्न", "sayahna" to "सायाह्न",
         "pradosha" to "प्रदोष", "nishitha" to "निशीथ",
-        "triyama" to "त्रियाम", "ushah" to "उषा"
+        "triyama" to "त्रियाम", "ushah" to "उषा",
+        "ok" to "ठीक है", "cancel" to "रद्द करें", "retry" to "पुनः प्रयास",
+        "error_loading" to "पंचांग लोड नहीं हो सका",
+        "previous_hora" to "पिछली", "next_hora" to "अगली"
     )
 
     private val SA: Map<String, String> = mapOf(
@@ -412,6 +418,9 @@ object AppStrings {
         "purvahna" to "पूर्वाह्नम्", "madhyahna" to "मध्याह्नम्",
         "aparahna" to "अपराह्नम्", "sayahna" to "सायाह्नम्",
         "pradosha" to "प्रदोषः", "nishitha" to "निशीथः",
-        "triyama" to "त्रियामः", "ushah" to "उषाः"
+        "triyama" to "त्रियामः", "ushah" to "उषाः",
+        "ok" to "स्वीकृतम्", "cancel" to "निरस्तम्", "retry" to "पुनः प्रयतस्व",
+        "error_loading" to "पञ्चाङ्गं प्रापयितुम् अशक्यम्",
+        "previous_hora" to "पूर्वम्", "next_hora" to "अग्रे"
     )
 }

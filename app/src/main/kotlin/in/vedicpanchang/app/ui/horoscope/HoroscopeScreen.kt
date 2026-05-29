@@ -295,7 +295,7 @@ private fun BirthInputForm(
             }
             Spacer(Modifier.height(8.dp))
 
-            // Place of birth — text field + GPS icon + search icon
+            // Place of birth — text field with search icon inside + GPS icon outside
             Text(strings["place_of_birth"] ?: "Place of Birth", style = AppTextStyles.labelSmall)
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
@@ -307,17 +307,20 @@ private fun BirthInputForm(
                     onValueChange = { locationQuery = it },
                     label = { Text(strings["enter_location"] ?: "Enter name of place") },
                     modifier = Modifier.weight(1f),
-                    singleLine = true
+                    singleLine = true,
+                    trailingIcon = {
+                        if (searchState is LocationSearchState.Searching) {
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = AppColors.Primary)
+                        } else {
+                            IconButton(onClick = { onSearch(locationQuery) }) {
+                                Icon(Icons.Default.Search, contentDescription = strings["search"] ?: "Search", tint = AppColors.Primary)
+                            }
+                        }
+                    }
                 )
                 IconButton(onClick = onUseCurrentLocation) {
                     Icon(Icons.Default.MyLocation, contentDescription = strings["use_current_location"] ?: "Use current location", tint = AppColors.Primary)
                 }
-                if (searchState is LocationSearchState.Searching)
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = AppColors.Primary)
-                else
-                    IconButton(onClick = { onSearch(locationQuery) }) {
-                        Icon(Icons.Default.Search, contentDescription = strings["search"] ?: "Search", tint = AppColors.Primary)
-                    }
             }
             if (searchState is LocationSearchState.NotFound) {
                 Text(strings["location_not_found"] ?: "Not found", style = AppTextStyles.bodySmall.copy(color = AppColors.Inauspicious))
