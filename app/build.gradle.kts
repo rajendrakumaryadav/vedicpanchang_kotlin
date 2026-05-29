@@ -29,8 +29,8 @@ android {
         applicationId = "in.vedicpanchang.app"
         minSdk = 21
         targetSdk = 36
-        versionCode = 1
-        versionName = "2.0.1"
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
+        versionName = (project.findProperty("versionName") as String?) ?: "2.0.1"
     }
 
     signingConfigs {
