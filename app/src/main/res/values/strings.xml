@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vedic Panchang</string>
+    <string name="widget_om_symbol" translatable="false">&#2384;</string>
+    <string name="widget_app_label" translatable="false">VEDIC PANCHANG</string>
+    <string name="widget_tithi_label" translatable="false">&#127769; TITHI</string>
+    <string name="widget_nakshatra_label" translatable="false">&#11088; NAKSHATRA</string>
+    <string name="widget_yoga_label" translatable="false">&#9728; YOGA</string>
+    <string name="widget_sunrise_label" translatable="false">&#127749; SUNRISE</string>
+    <string name="widget_sunset_label" translatable="false">SUNSET &#127751;</string>
     <string name="widget_description" translatable="false">Shows today\'s Panchang at a glance — Tithi, Nakshatra, Yoga, Sunrise and Sunset.</string>
     <string name="upcoming_events">Upcoming Events</string>
     <string name="day_choghadiya">Day Chodhadiya</string>
