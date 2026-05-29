@@ -106,7 +106,7 @@ private fun LiveAstronomyCard(
     todayPanchang: PanchangUiState
 ) {
     val effectiveInstant = liveNow ?: Instant.fromEpochMilliseconds(System.currentTimeMillis())
-    val javaLocale = if (locale == "hi" || locale == "sa") Locale("hi", "IN") else Locale.ENGLISH
+    val javaLocale = if (locale == "hi" || locale == "sa") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
     val asOf = SimpleDateFormat("yyyy-MM-dd HH:mm", javaLocale)
         .format(Date(effectiveInstant.toEpochMilliseconds()))
     // Compute JD on main thread only (pure math, no shared cache).
@@ -116,7 +116,7 @@ private fun LiveAstronomyCard(
     val panchang = (todayPanchang as? PanchangUiState.Success)?.panchang
     val sunLon = panchang?.sunLongitude
     val moonLon = panchang?.moonLongitude
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -270,7 +270,7 @@ private fun HelpEntryView(entry: HelpEntry, meaningLabel: String, calculationLab
 }
 
 @Composable
-private fun TaggedContent(tag: String, content: String, tagColor: androidx.compose.ui.graphics.Color) {
+private fun TaggedContent(tag: String, content: String, tagColor: Color) {
     Row(verticalAlignment = Alignment.Top) {
         Box(
             modifier = Modifier

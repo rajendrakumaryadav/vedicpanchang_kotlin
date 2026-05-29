@@ -29,7 +29,7 @@ class PanchangService @Inject constructor() {
         lat: Double,
         lon: Double,
         locationName: String,
-        observationInstant: kotlin.time.Instant? = null
+        observationInstant: Instant? = null
     ): PanchangModel {
         val key = cacheKey(date, lat, lon, locationName, observationInstant)
         cache[key]?.let { return it }
@@ -86,7 +86,7 @@ class PanchangService @Inject constructor() {
         val karanaNxt = KaranaCalculator.karanaName((karanaIdx + 1) % 11)
 
         // 7. Vaar
-        val weekdayIndex = date.dayOfWeek.ordinal % 7  // 0=Sun..6=Sat (kotlinx-datetime: Mon=0)
+        date.dayOfWeek.ordinal % 7  // 0=Sun..6=Sat (kotlinx-datetime: Mon=0)
         val vaar = PanchangConstants.VAAR_NAMES[
             // kotlinx-datetime DayOfWeek: MONDAY=0..SUNDAY=6; convert to Sun=0..Sat=6
             (date.dayOfWeek.ordinal + 1) % 7

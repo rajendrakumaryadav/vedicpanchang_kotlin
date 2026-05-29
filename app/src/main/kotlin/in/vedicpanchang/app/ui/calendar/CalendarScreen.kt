@@ -121,7 +121,7 @@ fun CalendarScreen(
     val notesForDay by calendarVm.notesForSelectedDate.collectAsStateWithLifecycle()
     val panchangState by panchangVm.state.collectAsStateWithLifecycle()
     val location = (panchangState.location as? LocationUiState.Success)?.location
-    val isDark = isSystemInDarkTheme()
+    isSystemInDarkTheme()
     val today = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
     var showAddSheet by remember { mutableStateOf(false) }
     var focusedMonth by remember { mutableStateOf(today.month) }
@@ -808,7 +808,7 @@ private fun AddNoteSheet(
                     if (title.isBlank()) return@Button
                     isSaving = true
                     scope.launch {
-                        val tz = TimeZone.currentSystemDefault()
+                        TimeZone.currentSystemDefault()
                         val reminderAt = if (notifEnabled) {
                             val localDateTime = JavaLocalDateTime.of(
                                 selectedDate.year,

@@ -10,16 +10,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +45,7 @@ import `in`.vedicpanchang.app.viewmodel.HoroscopeUiState
 import `in`.vedicpanchang.app.viewmodel.HoroscopeViewModel
 import `in`.vedicpanchang.app.viewmodel.LocationSearchState
 import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
+import kotlinx.coroutines.launch
 import kotlinx.datetime.*
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -59,6 +68,11 @@ fun HoroscopeScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val topBarColor = if (isDark) Color(0xFF1A0A2E) else Color(0xFFFDFCFB)
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var showShareSheet by remember { mutableStateOf(false) }
+    val chartSuccess = state.chart as? HoroscopeUiState.Success
+
     Scaffold(
         topBar = {
             LargeTopAppBar(
@@ -67,6 +81,13 @@ fun HoroscopeScreen(
                     if (navController.previousBackStackEntry != null) {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        }
+                    }
+                },
+                actions = {
+                    if (chartSuccess != null) {
+                        IconButton(onClick = { showShareSheet = true }) {
+                            Icon(Icons.Default.Share, contentDescription = "Share Kundali", tint = AppColors.Primary)
                         }
                     }
                 },
@@ -144,6 +165,110 @@ fun HoroscopeScreen(
             }
 
             item { Spacer(Modifier.height(32.dp)) }
+        }
+    }
+
+    // Share bottom sheet
+    if (showShareSheet && chartSuccess != null) {
+        KundaliShareSheet(
+            chart = chartSuccess.chart,
+            localizer = localizer,
+            strings = strings,
+            locale = locale,
+            onDismiss = { showShareSheet = false },
+            onShareImage = { bitmap ->
+                coroutineScope.launch {
+                    shareKundaliImage(context, bitmap)
+                }
+                showShareSheet = false
+            },
+            onShareText = {
+                shareKundaliText(context, chartSuccess.chart, localizer, locale)
+                showShareSheet = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun KundaliShareSheet(
+    chart: `in`.vedicpanchang.app.data.model.HoroscopeModel,
+    localizer: HoroscopeLocalizer,
+    strings: Map<String, String>,
+    locale: String,
+    onDismiss: () -> Unit,
+    onShareImage: (android.graphics.Bitmap) -> Unit,
+    onShareText: () -> Unit
+) {
+    val graphicsLayer = rememberGraphicsLayer()
+    val coroutineScope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                strings["share_kundali"] ?: "Share Kundali",
+                style = AppTextStyles.saffronLabel
+            )
+            Spacer(Modifier.height(16.dp))
+
+            // Share card preview — wrapped in graphicsLayer for capture
+            Box(
+                modifier = Modifier
+                    .drawWithContent {
+                        graphicsLayer.record { this@drawWithContent.drawContent() }
+                        drawLayer(graphicsLayer)
+                    }
+            ) {
+                KundaliShareCard(
+                    chart = chart,
+                    localizer = localizer,
+                    strings = strings,
+                    locale = locale
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            // Share as Image button
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                        onShareImage(bitmap)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
+            ) {
+                Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(strings["share_as_image"] ?: "Share as Image", style = AppTextStyles.labelLarge.copy(color = Color.White))
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Share as Text button
+            OutlinedButton(
+                onClick = onShareText,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Primary)
+            ) {
+                Icon(Icons.Default.TextFields, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(strings["share_as_text"] ?: "Share as Text", style = AppTextStyles.labelLarge)
+            }
         }
     }
 }
@@ -349,8 +474,8 @@ private fun ChartSummaryCard(
     localizer: HoroscopeLocalizer,
     locale: String
 ) {
-    val tz = TimeZone.currentSystemDefault()
-    val javaLocale = if (locale == "hi" || locale == "sa") Locale("hi", "IN") else Locale.ENGLISH
+    TimeZone.currentSystemDefault()
+    val javaLocale = if (locale == "hi" || locale == "sa") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
     val birthDate = SimpleDateFormat("d MMM yyyy, HH:mm", javaLocale)
         .format(Date(chart.birthDetails.birthInstant.toEpochMilliseconds()))
     val sun = chart.planets.firstOrNull { it.name == "Sun" } ?: chart.planets.first()
@@ -478,7 +603,7 @@ private fun PlanetNote(
 // ToggleButton helper
 @Composable
 private fun SegmentedButton(checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier: Modifier, content: @Composable RowScope.() -> Unit) {
-    androidx.compose.material3.FilledTonalButton(
+    FilledTonalButton(
         onClick = { onCheckedChange(!checked) },
         modifier = modifier,
         colors = ButtonDefaults.filledTonalButtonColors(

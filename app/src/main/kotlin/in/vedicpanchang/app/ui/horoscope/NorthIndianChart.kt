@@ -97,7 +97,7 @@ fun NorthIndianChart(
 
             val density = LocalDensity.current
             BoxWithConstraints(modifier = Modifier.fillMaxWidth().aspectRatio(1f)) {
-                val sizePx = with(density) { maxWidth.toPx() }
+                with(density) { maxWidth.toPx() }
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     drawNiGrid(borderColor)
                 }

@@ -58,7 +58,7 @@ fun SouthIndianChart(
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val planets = if (isNavamsha) chart.navamshaData else chart.planets
-    val houseSigns = if (isNavamsha) chart.navamshaHouseSigns else chart.houseSigns
+    if (isNavamsha) chart.navamshaHouseSigns else chart.houseSigns
     val lagnaSignIdx = if (isNavamsha) chart.lagnaNavamshaSignIndex else chart.lagnaSignIndex
     val borderColor = if (isDark) AppColors.CardBorder else AppColors.CardBorderLight
 
@@ -98,7 +98,7 @@ fun SouthIndianChart(
                 val cellSize = maxWidth / 4
                 // Draw grid lines
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val stroke = Stroke(1.2.dp.toPx())
+                    Stroke(1.2.dp.toPx())
                     for (r in 0..4) drawLine(borderColor, Offset(0f, size.height * r / 4), Offset(size.width, size.height * r / 4), 1.2.dp.toPx())
                     for (c in 0..4) drawLine(borderColor, Offset(size.width * c / 4, 0f), Offset(size.width * c / 4, size.height), 1.2.dp.toPx())
                 }

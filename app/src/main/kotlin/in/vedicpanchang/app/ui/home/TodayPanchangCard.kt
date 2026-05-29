@@ -41,7 +41,7 @@ fun TodayPanchangCard(
         Brush.linearGradient(listOf(Color(0xFF1F1B2E), Color(0xFF2A1F3D)))
     else
         Brush.linearGradient(listOf(Color(0xFFFEFDFB), Color(0xFFF5E6D3)))
-    val borderColor = if (isDark) AppColors.Primary.copy(alpha = 0.3f) else Color(0xFFCBA35C).copy(alpha = 0.3f)
+    if (isDark) AppColors.Primary.copy(alpha = 0.3f) else Color(0xFFCBA35C).copy(alpha = 0.3f)
 
     Box(
         modifier = Modifier

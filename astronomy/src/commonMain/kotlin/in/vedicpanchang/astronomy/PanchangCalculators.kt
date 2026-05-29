@@ -104,8 +104,7 @@ object KaranaCalculator {
 
     fun calculateKaranaIndex(sunLon: Double, moonLon: Double): Int {
         val diff = (moonLon - sunLon + 360.0) % 360.0
-        val halfTithi = floor(diff / 6.0).toInt()
-        return when (halfTithi) {
+        return when (val halfTithi = floor(diff / 6.0).toInt()) {
             0 -> 10   // Kimstughna (fixed)
             57 -> 7   // Shakuni (fixed)
             58 -> 8   // Chatushpada (fixed)

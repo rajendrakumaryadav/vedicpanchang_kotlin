@@ -89,30 +89,13 @@ fun DayDetailScreen(
                     if (p != null) {
                         val vaarName = localizer.vaarName(p)
                         val javaLocale = if (locale == "hi" || locale == "sa")
-                            JavaLocale("hi", "IN") else JavaLocale.ENGLISH
+                            JavaLocale.forLanguageTag("hi-IN") else JavaLocale.ENGLISH
                         val cal = java.util.Calendar.getInstance()
                         cal.set(date.year, date.month.number - 1, date.day)
                         val dateStr = localizer.numerals(
                             SimpleDateFormat("d MMM yyyy", javaLocale).format(cal.time)
                         )
                         Column {
-//                            Row(verticalAlignment = Alignment.CenterVertically) {
-//                                Icon(
-//                                    imageVector = Icons.Default.LocationOn,
-//                                    contentDescription = null,
-//                                    tint = Color(0xFFE53935),
-//                                    modifier = Modifier.size(12.dp)
-//                                )
-//                                Spacer(Modifier.width(3.dp))
-//                                Text(
-//                                    text = p.locationName,
-//                                    style = AppTextStyles.bodySmall.copy(
-//                                        color = AppColors.TextSecondary, fontSize = 11.sp
-//                                    ),
-//                                    maxLines = 1,
-//                                    overflow = TextOverflow.Ellipsis
-//                                )
-//                            }
                             Text("$vaarName, $dateStr")
                         }
                     } else {
@@ -156,7 +139,7 @@ fun DayDetailScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(strings["error_loading"] ?: "Could not load panchang")
                     Spacer(Modifier.height(12.dp))
-                    androidx.compose.material3.Button(onClick = { retryTrigger++ }) {
+                    Button(onClick = { retryTrigger++ }) {
                         Text(strings["retry"] ?: "Retry")
                     }
                 }
@@ -235,7 +218,7 @@ private fun VedicCalendarSection(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    MaterialTheme.colorScheme.background.luminance() < 0.5f
     val monthNum = panchang.date.month.ordinal + 1
     val vedicMonth = localizer.vedicMonthName(panchang)
     val vikramYear = localizer.numerals(
@@ -609,7 +592,7 @@ private fun AstronomicalDataCard(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    MaterialTheme.colorScheme.background.luminance() < 0.5f
     var expanded by remember { mutableStateOf(false) }
     val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
     val textPrimary = MaterialTheme.colorScheme.onSurface
