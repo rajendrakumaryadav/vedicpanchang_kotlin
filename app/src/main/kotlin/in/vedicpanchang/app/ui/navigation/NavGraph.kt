@@ -183,70 +183,55 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.bottomNavExit(
     )
 }
 
+// ── Detail transitions (Calendar → DayDetail) ────────────────────────────────
+//
+// Pattern: new screen slides in full-width over the source (source barely moves).
+// This avoids the "double fade" artifact from both screens going transparent.
+
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.detailEnter(): EnterTransition =
     slideInHorizontally(
-        animationSpec = tween<IntOffset>(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
+        animationSpec = tween(
+            durationMillis = MotionTokens.DetailEnterDurationMillis,
+            easing = MotionTokens.EmphasizedDecelerate
         ),
-        initialOffsetX = { fullWidth ->
-            (fullWidth * MotionTokens.DetailSlideFraction).roundToInt()
-        }
+        initialOffsetX = { it }            // enter from the full right edge
     ) + fadeIn(
         animationSpec = tween(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
+            durationMillis = MotionTokens.DetailEnterDurationMillis / 2,
+            easing = MotionTokens.EmphasizedDecelerate
         ),
         initialAlpha = MotionTokens.FadeInStart
     )
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.detailExitForward(): ExitTransition =
     slideOutHorizontally(
-        animationSpec = tween<IntOffset>(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
-        ),
-        targetOffsetX = { fullWidth ->
-            -(fullWidth * MotionTokens.DetailSlideFraction).roundToInt()
-        }
-    ) + fadeOut(
         animationSpec = tween(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
+            durationMillis = MotionTokens.DetailEnterDurationMillis,
+            easing = MotionTokens.EmphasizedDecelerate
         ),
-        targetAlpha = MotionTokens.FadeOutEnd
+        targetOffsetX = { -(it * 0.08f).roundToInt() }   // barely nudge left, no fade
     )
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.detailPopEnter(): EnterTransition =
     slideInHorizontally(
-        animationSpec = tween<IntOffset>(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
-        ),
-        initialOffsetX = { fullWidth ->
-            -(fullWidth * MotionTokens.DetailSlideFraction).roundToInt()
-        }
-    ) + fadeIn(
         animationSpec = tween(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
+            durationMillis = MotionTokens.DetailEnterDurationMillis,
+            easing = MotionTokens.EmphasizedDecelerate
         ),
-        initialAlpha = MotionTokens.FadeInStart
+        initialOffsetX = { -(it * 0.08f).roundToInt() }  // return from slight left nudge
     )
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.detailPopExit(): ExitTransition =
     slideOutHorizontally(
-        animationSpec = tween<IntOffset>(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
+        animationSpec = tween(
+            durationMillis = MotionTokens.DetailExitDurationMillis,
+            easing = MotionTokens.EmphasizedAccelerate
         ),
-        targetOffsetX = { fullWidth ->
-            (fullWidth * MotionTokens.DetailSlideFraction).roundToInt()
-        }
+        targetOffsetX = { it }             // exit to the full right edge
     ) + fadeOut(
         animationSpec = tween(
-            durationMillis = MotionTokens.MediumDurationMillis,
-            easing = MotionTokens.StandardEasing
+            durationMillis = MotionTokens.DetailExitDurationMillis / 2,
+            easing = MotionTokens.EmphasizedAccelerate
         ),
         targetAlpha = MotionTokens.FadeOutEnd
     )
