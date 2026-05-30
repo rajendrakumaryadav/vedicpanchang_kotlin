@@ -117,6 +117,7 @@ object FestivalData {
     // ── Localized names ───────────────────────────────────────────────────────
 
     private val HI_NAMES = mapOf(
+        "Lunar Eclipse" to "चंद्र ग्रहण", "Solar Eclipse" to "सूर्य ग्रहण",
         "Ekadashi" to "एकादशी", "Purnima" to "पूर्णिमा", "Amavasya" to "अमावस्या",
         "Sankashti Chaturthi" to "संकष्टी चतुर्थी", "Pradosh Vrat" to "प्रदोष व्रत",
         "Masik Shivaratri" to "मासिक शिवरात्रि", "Akshaya Tritiya" to "अक्षय तृतीया",
@@ -146,6 +147,7 @@ object FestivalData {
     )
 
     private val SA_NAMES = mapOf(
+        "Lunar Eclipse" to "चन्द्रग्रहणम्", "Solar Eclipse" to "सूर्यग्रहणम्",
         "Ekadashi" to "एकादशी", "Purnima" to "पूर्णिमा", "Amavasya" to "अमावस्या",
         "Sankashti Chaturthi" to "सङ्कष्टचतुर्थी", "Pradosh Vrat" to "प्रदोषव्रतम्",
         "Masik Shivaratri" to "मासिकशिवरात्रिः", "Akshaya Tritiya" to "अक्षयतृतीया",

@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.l10n.PanchangLocalizer
+import `in`.vedicpanchang.app.ui.home.DishasoolCard
 import `in`.vedicpanchang.app.ui.home.SunMoonCard
 import `in`.vedicpanchang.app.ui.home.TodayPanchangCard
 import `in`.vedicpanchang.app.ui.navigation.AppBottomNav
@@ -163,6 +164,8 @@ fun DayDetailScreen(
                 item { AuspiciousMuhurtasCard(panchang = p, strings = strings, localizer = localizer) }
                 // 6. Inauspicious Periods
                 item { InauspiciousPeriodsCard(panchang = p, strings = strings, localizer = localizer) }
+                // 6b. Dishasool
+                item { DishasoolCard(panchang = p, strings = strings) }
                 // 7. Day Muhurtas (Collapsable)
                 item { DaytimeMuhurtasCard(panchang = p, strings = strings, localizer = localizer) }
                 // 8. Astronomical Data (Collapsable)

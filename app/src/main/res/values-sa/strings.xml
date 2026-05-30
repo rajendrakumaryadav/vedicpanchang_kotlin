@@ -180,6 +180,32 @@
     <string name="dasha_starts">आरम्भः</string>
     <string name="dasha_ends">समाप्तिः</string>
     <string name="years_short">वर्षाः</string>
+    <!-- Dishasool -->
+    <string name="dishasool">दिशाशूलम्</string>
+    <string name="dishasool_subtitle">अद्यतन अशुभा दिशा</string>
+    <string name="direction_to_avoid">परिहार्या दिशा</string>
+    <string name="parihaar">परिहारः (उपायः)</string>
+    <string name="dir_north">उत्तरम्</string>
+    <string name="dir_south">दक्षिणम्</string>
+    <string name="dir_east">पूर्वम्</string>
+    <string name="dir_west">पश्चिमम्</string>
+    <string name="parihaar_0">यात्रापूर्वं दलिया घृतं वा भक्षयतु</string>
+    <string name="parihaar_1">दर्पणं पश्यतु दुग्धं वा पिबतु</string>
+    <string name="parihaar_2">गुडं धनियां वा खादतु</string>
+    <string name="parihaar_3">हरितधनियां तिलं वा खादतु</string>
+    <string name="parihaar_4">पीतसर्षपं जीरकं वा सेवतु</string>
+    <string name="parihaar_5">दध्नि यवं वा सेवतु</string>
+    <string name="parihaar_6">आर्द्रकं तेलं वा सेवतु</string>
+    <!-- Adhikmash -->
+    <string name="adhikmash">अधिकमासः</string>
+    <string name="adhikmash_running">अधिकमासः प्रवर्तते</string>
+    <string name="adhikmash_label">अधिकमासः</string>
+    <!-- Eclipse -->
+    <string name="lunar_eclipse">चन्द्रग्रहणम्</string>
+    <string name="solar_eclipse">सूर्यग्रहणम्</string>
+    <string name="eclipse_today">अद्य ग्रहणम्</string>
+    <string name="eclipse_note">ग्रहणं केषुचित् प्रदेशेषु दृश्यते — स्थानीयस्रोतैः सत्यापयतु</string>
+
     <string name="choghadiya">चौघडिया</string>
     <string name="day_choghadiya"> दिवा-चौघडिया</string>
     <string name="night_choghadiya"> रात्रि-चौघडिया</string>

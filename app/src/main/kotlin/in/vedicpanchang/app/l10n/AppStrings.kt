@@ -179,7 +179,30 @@ object AppStrings {
         "triyama" to "Triyama", "ushah" to "Ushah",
         "ok" to "OK", "cancel" to "Cancel", "retry" to "Retry",
         "error_loading" to "Could not load panchang",
-        "previous_hora" to "Previous", "next_hora" to "Next"
+        "previous_hora" to "Previous", "next_hora" to "Next",
+        // Dishasool
+        "dishasool" to "Dishasool",
+        "dishasool_subtitle" to "Inauspicious direction today",
+        "direction_to_avoid" to "Direction to Avoid",
+        "parihaar" to "Parihaar (Counter-Measure)",
+        "dir_north" to "North", "dir_south" to "South",
+        "dir_east" to "East", "dir_west" to "West",
+        "parihaar_0" to "Eat porridge or ghee before departing",
+        "parihaar_1" to "Look in a mirror or consume milk",
+        "parihaar_2" to "Eat jaggery or coriander seed",
+        "parihaar_3" to "Eat green coriander leaf or sesame seeds",
+        "parihaar_4" to "Consume yellow mustard seed or cumin",
+        "parihaar_5" to "Consume curd (yogurt) or barley",
+        "parihaar_6" to "Consume ginger or oil",
+        // Adhikmash
+        "adhikmash" to "Adhikmash",
+        "adhikmash_running" to "Adhik Maas is running",
+        "adhikmash_label" to "Intercalary Month",
+        // Eclipse
+        "lunar_eclipse" to "Lunar Eclipse",
+        "solar_eclipse" to "Solar Eclipse",
+        "eclipse_today" to "Eclipse Today",
+        "eclipse_note" to "Eclipse visible in some regions — verify with local sources"
     )
 
     private val HI: Map<String, String> = mapOf(
@@ -297,7 +320,30 @@ object AppStrings {
         "triyama" to "त्रियाम", "ushah" to "उषा",
         "ok" to "ठीक है", "cancel" to "रद्द करें", "retry" to "पुनः प्रयास",
         "error_loading" to "पंचांग लोड नहीं हो सका",
-        "previous_hora" to "पिछली", "next_hora" to "अगली"
+        "previous_hora" to "पिछली", "next_hora" to "अगली",
+        // Dishasool
+        "dishasool" to "दिशाशूल",
+        "dishasool_subtitle" to "आज की अशुभ दिशा",
+        "direction_to_avoid" to "परिहार्य दिशा",
+        "parihaar" to "परिहार (उपाय)",
+        "dir_north" to "उत्तर", "dir_south" to "दक्षिण",
+        "dir_east" to "पूर्व", "dir_west" to "पश्चिम",
+        "parihaar_0" to "यात्रा से पहले दलिया या घी खाएँ",
+        "parihaar_1" to "दर्पण देखें या दूध पीएँ",
+        "parihaar_2" to "गुड़ या धनिया खाएँ",
+        "parihaar_3" to "हरी धनिया पत्ती या तिल खाएँ",
+        "parihaar_4" to "पीली सरसों या जीरा खाएँ",
+        "parihaar_5" to "दही या जौ खाएँ",
+        "parihaar_6" to "अदरक या तेल का सेवन करें",
+        // Adhikmash
+        "adhikmash" to "अधिकमास",
+        "adhikmash_running" to "अधिक मास चल रहा है",
+        "adhikmash_label" to "अधिक मास",
+        // Eclipse
+        "lunar_eclipse" to "चंद्र ग्रहण",
+        "solar_eclipse" to "सूर्य ग्रहण",
+        "eclipse_today" to "आज ग्रहण",
+        "eclipse_note" to "ग्रहण कुछ क्षेत्रों में दृश्य — स्थानीय स्रोतों से सत्यापित करें"
     )
 
     private val SA: Map<String, String> = mapOf(
@@ -415,6 +461,29 @@ object AppStrings {
         "triyama" to "त्रियामः", "ushah" to "उषाः",
         "ok" to "स्वीकृतम्", "cancel" to "निरस्तम्", "retry" to "पुनः प्रयतस्व",
         "error_loading" to "पञ्चाङ्गं प्रापयितुम् अशक्यम्",
-        "previous_hora" to "पूर्वम्", "next_hora" to "अग्रे"
+        "previous_hora" to "पूर्वम्", "next_hora" to "अग्रे",
+        // Dishasool
+        "dishasool" to "दिशाशूलम्",
+        "dishasool_subtitle" to "अद्यतन अशुभा दिशा",
+        "direction_to_avoid" to "परिहार्या दिशा",
+        "parihaar" to "परिहारः (उपायः)",
+        "dir_north" to "उत्तरम्", "dir_south" to "दक्षिणम्",
+        "dir_east" to "पूर्वम्", "dir_west" to "पश्चिमम्",
+        "parihaar_0" to "यात्रापूर्वं दलिया घृतं वा भक्षयतु",
+        "parihaar_1" to "दर्पणं पश्यतु दुग्धं वा पिबतु",
+        "parihaar_2" to "गुडं धनियां वा खादतु",
+        "parihaar_3" to "हरितधनियां तिलं वा खादतु",
+        "parihaar_4" to "पीतसर्षपं जीरकं वा सेवतु",
+        "parihaar_5" to "दध्नि यवं वा सेवतु",
+        "parihaar_6" to "आर्द्रकं तेलं वा सेवतु",
+        // Adhikmash
+        "adhikmash" to "अधिकमासः",
+        "adhikmash_running" to "अधिकमासः प्रवर्तते",
+        "adhikmash_label" to "अधिकमासः",
+        // Eclipse
+        "lunar_eclipse" to "चन्द्रग्रहणम्",
+        "solar_eclipse" to "सूर्यग्रहणम्",
+        "eclipse_today" to "अद्य ग्रहणम्",
+        "eclipse_note" to "ग्रहणं केषुचित् प्रदेशेषु दृश्यते — स्थानीयस्रोतैः सत्यापयतु"
     )
 }

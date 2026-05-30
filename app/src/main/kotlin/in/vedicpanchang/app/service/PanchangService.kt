@@ -7,6 +7,7 @@ import kotlinx.datetime.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.number
 import kotlin.math.floor
+import kotlin.math.abs
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Instant
@@ -119,6 +120,42 @@ class PanchangService @Inject constructor() {
         val normalizedSunLon = ((sunLon % 360.0) + 360.0) % 360.0
         val lunarMonthIdx = (floor(normalizedSunLon / 30.0).toInt() + 1) % 12
 
+        // 13. Adhikmash detection
+        // A lunar month is intercalary when no solar sankranti (sidereal sign change) occurs within it.
+        // Use raw elongation (not integer tithiIdx) for sub-tithi precision — the borderline case where
+        // a sankranti falls on the very last day of the month requires fractional-day accuracy.
+        val elongation = ((moonLon - sunLon) + 360.0) % 360.0
+        val daysIntoMonth = (elongation / 360.0) * 29.53
+        val monthStartJd = jd - daysIntoMonth
+        val monthEndJd = monthStartJd + 29.53
+        val isAdhikmash = run {
+            var prevSign = floor(AstronomyService.sunLongitudeSidereal(monthStartJd) / 30.0).toInt()
+            var sankrantiFound = false
+            var scanJd = monthStartJd + 1.0
+            while (scanJd <= monthEndJd) {
+                val sign = floor(AstronomyService.sunLongitudeSidereal(scanJd) / 30.0).toInt()
+                if (sign != prevSign) { sankrantiFound = true; break }
+                prevSign = sign
+                scanJd += 1.0
+            }
+            !sankrantiFound
+        }
+        val adhikmashName: String? = if (isAdhikmash) {
+            val vedMonths = listOf(
+                "Chaitra", "Vaishakha", "Jyeshtha", "Ashadha", "Shravana",
+                "Bhadrapada", "Ashwin", "Kartik", "Margashirsha", "Pausha", "Magha", "Phalguna"
+            )
+            "Adhik ${vedMonths[lunarMonthIdx]}"
+        } else null
+
+        // 14. Eclipse detection
+        val lunarEclipse = EclipseCalculator.isLunarEclipse(jd, tithiIdx)
+        val solarEclipse = EclipseCalculator.isSolarEclipse(jd, tithiIdx)
+        val festivalsWithEclipse = festivals.toMutableList().also { list ->
+            if (lunarEclipse) list.add(0, "Lunar Eclipse")
+            if (solarEclipse) list.add(0, "Solar Eclipse")
+        }
+
         val model = PanchangModel(
             date = date, latitude = lat, longitude = lon, locationName = locationName,
             tithiIndex = tithiIdx, tithiName = tithiN, paksha = pakshaStr,
@@ -136,9 +173,13 @@ class PanchangService @Inject constructor() {
             brahmaMuhurta = brahma, abhijitMuhurta = abhijit,
             auspiciousMuhurtas = auspiciousMuhurtas, daytimeMuhurtas = daytimeMuhurtas,
             rahuKaal = rahu, yamaganda = yama, gulikaKaal = gulika,
-            festivals = festivals,
+            festivals = festivalsWithEclipse,
             sunLongitude = sunLon, moonLongitude = moonLon,
-            lunarMonthIndex = lunarMonthIdx
+            lunarMonthIndex = lunarMonthIdx,
+            isAdhikmash = isAdhikmash,
+            adhikmashName = adhikmashName,
+            lunarEclipse = lunarEclipse,
+            solarEclipse = solarEclipse
         )
 
         cache[key] = model

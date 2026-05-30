@@ -126,6 +126,8 @@ object AstronomyService {
         return result
     }
 
+    fun moonLatitude(jd: Double): Double = moonEclipticPosition(jd).latitude
+
     // ─── Sunrise / Sunset ────────────────────────────────────────────────────
 
     fun sunriseSunset(date: LocalDate, lat: Double, lon: Double): SunriseSunset {

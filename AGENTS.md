@@ -2,6 +2,41 @@
 
 This repository uses **specification-driven development**. Specs are the source of truth for scope, behavior, and acceptance criteria. Agents and contributors must keep specs and implementation in sync.
 
+## Project Structure Overview
+
+The project is organized into the following main directories and modules:
+
+- **app/**: Android application module containing all user-facing code and resources.
+  - `src/main/kotlin/in/vedicpanchang/app/`: Main application logic, including:
+    - `ui/`: User interface components and screens
+    - `viewmodel/`: ViewModel classes for UI state management
+    - `service/`: Android services
+    - `receiver/`: Broadcast receivers
+    - `di/`: Dependency injection setup
+    - `l10n/`: Localization and language support
+    - `widget/`: App widgets
+    - `data/`: Data models and repositories
+  - `src/main/res/`: Android resources (layouts, drawables, values, etc.)
+  - `AndroidManifest.xml`: App manifest
+
+- **astronomy/**: Core calculation and business logic for Panchang and astrology features.
+  - `src/commonMain/kotlin/in/vedicpanchang/astronomy/`: Core calculators and planetary logic:
+    - `AstronomyService.kt`: Service entry point
+    - `PanchangCalculators.kt`, `ChoghadiyaCalculator.kt`, `HoraCalculator.kt`, `MuhurtaCalculator.kt`: Calculation modules
+    - `PlanetaryPositions.kt`, `TimeRange.kt`: Astronomical data structures
+
+- **images/**: App icons and graphics used throughout the UI.
+
+- **keys/**: Keystore, signing certificates, and related security files (not for source control).
+
+- **specs/**: Specification documents for all features and changes, following the spec-driven workflow.
+
+- **build/**, **gradle/**: Build outputs, scripts, and Gradle configuration (including version catalogs and wrapper).
+
+- **README.md**, **AGENTS.md**, etc.: Project documentation and agent workflow guides.
+
+This modular structure enforces a clear separation between UI/app logic and core calculation logic, supporting maintainability, testability, and onboarding for new contributors. Each module is responsible for a distinct concern, and all changes are governed by the specification-driven process described below.
+
 ## Quick start (for any change)
 
 1. Create or update a spec in **/specs** and set **Status: Draft**.

@@ -13,9 +13,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,15 +29,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.CalendarViewMonth
 import androidx.compose.material.icons.outlined.Today
-import androidx.compose.material.icons.outlined.ViewWeek
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -68,11 +66,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
-import kotlin.math.abs
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,6 +84,7 @@ import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import `in`.vedicpanchang.app.viewmodel.CalendarViewModel
 import `in`.vedicpanchang.app.viewmodel.LocationUiState
 import `in`.vedicpanchang.app.viewmodel.NotesUiState
+import `in`.vedicpanchang.app.viewmodel.PanchangUiState
 import `in`.vedicpanchang.app.viewmodel.PanchangViewModel
 import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
@@ -101,6 +99,7 @@ import kotlinx.datetime.toLocalDateTime
 import java.text.SimpleDateFormat
 import java.time.ZoneId
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.time.Clock
 import kotlin.time.Instant
 import java.time.LocalDateTime as JavaLocalDateTime
@@ -117,6 +116,7 @@ fun CalendarScreen(
     calendarVm: CalendarViewModel = hiltViewModel(),
     settingsVm: SettingsViewModel = hiltViewModel()
 ) {
+
     val strings by settingsVm.strings.collectAsStateWithLifecycle()
     val localizer by settingsVm.panchangLocalizer.collectAsStateWithLifecycle()
     val locale by settingsVm.locale.collectAsStateWithLifecycle()
@@ -126,7 +126,8 @@ fun CalendarScreen(
     val panchangState by panchangVm.state.collectAsStateWithLifecycle()
     val location = (panchangState.location as? LocationUiState.Success)?.location
     isSystemInDarkTheme()
-    val today = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
+    val today =
+        remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
     var showAddSheet by remember { mutableStateOf(false) }
     var focusedMonth by remember { mutableStateOf(today.month) }
     var focusedYear by remember { mutableIntStateOf(today.year) }
@@ -144,11 +145,13 @@ fun CalendarScreen(
                 }
                 (1..daysInMonth).map { day -> LocalDate(focusedYear, focusedMonth, day) }
             }
+
             CalendarViewMode.BIWEEK -> {
                 val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
                 val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
                 (0..13).map { weekStart.plus(it, DateTimeUnit.DAY) }
             }
+
             CalendarViewMode.WEEK -> {
                 val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
                 val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
@@ -204,7 +207,8 @@ fun CalendarScreen(
                 viewMode = viewMode,
                 onPrev = {
                     if (viewMode == CalendarViewMode.MONTH) {
-                        val prev = LocalDate(focusedYear, focusedMonth, 1).minus(1, DateTimeUnit.MONTH)
+                        val prev =
+                            LocalDate(focusedYear, focusedMonth, 1).minus(1, DateTimeUnit.MONTH)
                         focusedMonth = prev.month
                         focusedYear = prev.year
                     } else {
@@ -216,7 +220,8 @@ fun CalendarScreen(
                 },
                 onNext = {
                     if (viewMode == CalendarViewMode.MONTH) {
-                        val next = LocalDate(focusedYear, focusedMonth, 1).plus(1, DateTimeUnit.MONTH)
+                        val next =
+                            LocalDate(focusedYear, focusedMonth, 1).plus(1, DateTimeUnit.MONTH)
                         focusedMonth = next.month
                         focusedYear = next.year
                     } else {
@@ -228,9 +233,9 @@ fun CalendarScreen(
                 },
                 onToggleView = {
                     viewMode = when (viewMode) {
-                        CalendarViewMode.MONTH  -> CalendarViewMode.BIWEEK
+                        CalendarViewMode.MONTH -> CalendarViewMode.BIWEEK
                         CalendarViewMode.BIWEEK -> CalendarViewMode.WEEK
-                        CalendarViewMode.WEEK   -> CalendarViewMode.MONTH
+                        CalendarViewMode.WEEK -> CalendarViewMode.MONTH
                     }
                     focusedMonth = selectedDate.month
                     focusedYear = selectedDate.year
@@ -253,35 +258,39 @@ fun CalendarScreen(
                 },
                 onSwipeLeft = {
                     if (viewMode == CalendarViewMode.MONTH) {
-                        val next = LocalDate(focusedYear, focusedMonth, 1).plus(1, DateTimeUnit.MONTH)
+                        val next =
+                            LocalDate(focusedYear, focusedMonth, 1).plus(1, DateTimeUnit.MONTH)
                         focusedMonth = next.month; focusedYear = next.year
                     } else {
                         val next = selectedDate.plus(7, DateTimeUnit.DAY)
-                        calendarVm.selectDate(next); focusedMonth = next.month; focusedYear = next.year
+                        calendarVm.selectDate(next); focusedMonth = next.month; focusedYear =
+                            next.year
                     }
                 },
                 onSwipeRight = {
                     if (viewMode == CalendarViewMode.MONTH) {
-                        val prev = LocalDate(focusedYear, focusedMonth, 1).minus(1, DateTimeUnit.MONTH)
+                        val prev =
+                            LocalDate(focusedYear, focusedMonth, 1).minus(1, DateTimeUnit.MONTH)
                         focusedMonth = prev.month; focusedYear = prev.year
                     } else {
                         val prev = selectedDate.minus(7, DateTimeUnit.DAY)
-                        calendarVm.selectDate(prev); focusedMonth = prev.month; focusedYear = prev.year
+                        calendarVm.selectDate(prev); focusedMonth = prev.month; focusedYear =
+                            prev.year
                     }
                 },
                 onSwipeUp = {
                     viewMode = when (viewMode) {
-                        CalendarViewMode.MONTH  -> CalendarViewMode.BIWEEK
+                        CalendarViewMode.MONTH -> CalendarViewMode.BIWEEK
                         CalendarViewMode.BIWEEK -> CalendarViewMode.WEEK
-                        CalendarViewMode.WEEK   -> CalendarViewMode.WEEK
+                        CalendarViewMode.WEEK -> CalendarViewMode.WEEK
                     }
                     focusedMonth = selectedDate.month; focusedYear = selectedDate.year
                 },
                 onSwipeDown = {
                     viewMode = when (viewMode) {
-                        CalendarViewMode.WEEK   -> CalendarViewMode.BIWEEK
+                        CalendarViewMode.WEEK -> CalendarViewMode.BIWEEK
                         CalendarViewMode.BIWEEK -> CalendarViewMode.MONTH
-                        CalendarViewMode.MONTH  -> CalendarViewMode.MONTH
+                        CalendarViewMode.MONTH -> CalendarViewMode.MONTH
                     }
                     focusedMonth = selectedDate.month; focusedYear = selectedDate.year
                 }
@@ -301,7 +310,13 @@ fun CalendarScreen(
                 onAddNote = { showAddSheet = true },
                 onViewDetails = {
                     navController.navigate(
-                        NavRoutes.dayDetail("%04d-%02d-%02d".format(selectedDate.year, selectedDate.month.ordinal + 1, selectedDate.day))
+                        NavRoutes.dayDetail(
+                            "%04d-%02d-%02d".format(
+                                selectedDate.year,
+                                selectedDate.month.ordinal + 1,
+                                selectedDate.day
+                            )
+                        )
                     ) { launchSingleTop = true }
                 },
                 modifier = Modifier.weight(1f)
@@ -333,11 +348,18 @@ private fun MonthNavigator(
     val fmt = SimpleDateFormat("MMMM yyyy", javaLocale)
     val cal = java.util.Calendar.getInstance().apply { set(year, month.ordinal, 1) }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = onPrev) { Text("<", style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)) }
+        IconButton(onClick = onPrev) {
+            Text(
+                "<",
+                style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)
+            )
+        }
         Text(fmt.format(cal.time), style = AppTextStyles.displaySmall)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -349,14 +371,19 @@ private fun MonthNavigator(
             ) {
                 Text(
                     text = when (viewMode) {
-                        CalendarViewMode.MONTH  -> "Month"
+                        CalendarViewMode.MONTH -> "Month"
                         CalendarViewMode.BIWEEK -> "2 weeks"
-                        CalendarViewMode.WEEK   -> "1 week"
+                        CalendarViewMode.WEEK -> "1 week"
                     },
                     style = AppTextStyles.labelSmall.copy(color = AppColors.Primary)
                 )
             }
-            IconButton(onClick = onNext) { Text(">", style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)) }
+            IconButton(onClick = onNext) {
+                Text(
+                    ">",
+                    style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)
+                )
+            }
         }
     }
 }
@@ -373,7 +400,7 @@ private fun MonthCalendarGrid(
     onSwipeUp: () -> Unit,
     onSwipeDown: () -> Unit,
 ) {
-    val weekDayLabels = listOf("M","T","W","T","F","S","S")
+    val weekDayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
 
     @Composable
     fun DayCell(date: LocalDate, col: Int, modifier: Modifier = Modifier) {
@@ -389,9 +416,21 @@ private fun MonthCalendarGrid(
                 .clip(CircleShape)
                 .background(
                     when {
-                        isSelected -> Brush.linearGradient(listOf(AppColors.SaffronGradientStart, AppColors.SaffronGradientEnd))
-                        isToday    -> Brush.linearGradient(listOf(AppColors.Primary.copy(alpha = 0.2f), AppColors.Primary.copy(alpha = 0.2f)))
-                        else       -> Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+                        isSelected -> Brush.linearGradient(
+                            listOf(
+                                AppColors.SaffronGradientStart,
+                                AppColors.SaffronGradientEnd
+                            )
+                        )
+
+                        isToday -> Brush.linearGradient(
+                            listOf(
+                                AppColors.Primary.copy(alpha = 0.2f),
+                                AppColors.Primary.copy(alpha = 0.2f)
+                            )
+                        )
+
+                        else -> Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
                     }
                 )
                 .then(
@@ -415,8 +454,18 @@ private fun MonthCalendarGrid(
                 )
                 if (hasFestival || hasNote) {
                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        if (hasFestival) Box(Modifier.size(4.dp).clip(CircleShape).background(AppColors.Secondary))
-                        if (hasNote) Box(Modifier.size(4.dp).clip(CircleShape).background(AppColors.CustomNote))
+                        if (hasFestival) Box(
+                            Modifier
+                                .size(4.dp)
+                                .clip(CircleShape)
+                                .background(AppColors.Secondary)
+                        )
+                        if (hasNote) Box(
+                            Modifier
+                                .size(4.dp)
+                                .clip(CircleShape)
+                                .background(AppColors.CustomNote)
+                        )
                     }
                 }
             }
@@ -426,7 +475,7 @@ private fun MonthCalendarGrid(
     // Build the animated key: month-mode uses focusedMonth/Year; week modes anchor to selectedDate
     val animKey = when (viewMode) {
         CalendarViewMode.MONTH -> CalendarKey(viewMode, month, year)
-        else                   -> CalendarKey(viewMode, selectedDate.month, selectedDate.year)
+        else -> CalendarKey(viewMode, selectedDate.month, selectedDate.year)
     }
 
     Column(
@@ -447,12 +496,12 @@ private fun MonthCalendarGrid(
                         if (abs(dragX) > abs(dragY)) {
                             when {
                                 dragX < -threshold -> onSwipeLeft()
-                                dragX > threshold  -> onSwipeRight()
+                                dragX > threshold -> onSwipeRight()
                             }
                         } else {
                             when {
                                 dragY < -threshold -> onSwipeUp()
-                                dragY > threshold  -> onSwipeDown()
+                                dragY > threshold -> onSwipeDown()
                             }
                         }
                     }
@@ -485,21 +534,21 @@ private fun MonthCalendarGrid(
                     val collapsing = targetState.mode.ordinal > initialState.mode.ordinal
                     if (collapsing) {
                         (slideInVertically { -it / 3 } + fadeIn()) togetherWith
-                        (slideOutVertically { it / 3 } + fadeOut())
+                                (slideOutVertically { it / 3 } + fadeOut())
                     } else {
                         (slideInVertically { it / 3 } + fadeIn()) togetherWith
-                        (slideOutVertically { -it / 3 } + fadeOut())
+                                (slideOutVertically { -it / 3 } + fadeOut())
                     }
                 } else {
                     // Horizontal: forward = swipe left = next month
                     val forward = targetState.year * 12 + targetState.month.ordinal >
-                                  initialState.year * 12 + initialState.month.ordinal
+                            initialState.year * 12 + initialState.month.ordinal
                     if (forward) {
                         (slideInHorizontally { it } + fadeIn()) togetherWith
-                        (slideOutHorizontally { -it } + fadeOut())
+                                (slideOutHorizontally { -it } + fadeOut())
                     } else {
                         (slideInHorizontally { -it } + fadeIn()) togetherWith
-                        (slideOutHorizontally { it } + fadeOut())
+                                (slideOutHorizontally { it } + fadeOut())
                     }
                 }.using(SizeTransform(clip = true))
             },
@@ -520,31 +569,49 @@ private fun MonthCalendarGrid(
                                 for (col in 0..6) {
                                     val day = row * 7 + col - startOffset + 1
                                     if (day < 1 || day > daysInMonth) {
-                                        Box(Modifier.weight(1f).aspectRatio(1f))
+                                        Box(
+                                            Modifier
+                                                .weight(1f)
+                                                .aspectRatio(1f)
+                                        )
                                     } else {
-                                        DayCell(LocalDate(key.year, key.month, day), col, Modifier.weight(1f))
+                                        DayCell(
+                                            LocalDate(key.year, key.month, day),
+                                            col,
+                                            Modifier.weight(1f)
+                                        )
                                     }
                                 }
                             }
                         }
                     }
+
                     CalendarViewMode.BIWEEK -> {
                         val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
                         val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
                         for (weekOffset in 0..1) {
                             Row(Modifier.fillMaxWidth()) {
                                 for (col in 0..6) {
-                                    DayCell(weekStart.plus(weekOffset * 7 + col, DateTimeUnit.DAY), col, Modifier.weight(1f))
+                                    DayCell(
+                                        weekStart.plus(weekOffset * 7 + col, DateTimeUnit.DAY),
+                                        col,
+                                        Modifier.weight(1f)
+                                    )
                                 }
                             }
                         }
                     }
+
                     CalendarViewMode.WEEK -> {
                         val startOffset = selectedDate.dayOfWeek.isoDayNumber - 1
                         val weekStart = selectedDate.minus(startOffset, DateTimeUnit.DAY)
                         Row(Modifier.fillMaxWidth()) {
                             for (col in 0..6) {
-                                DayCell(weekStart.plus(col, DateTimeUnit.DAY), col, Modifier.weight(1f))
+                                DayCell(
+                                    weekStart.plus(col, DateTimeUnit.DAY),
+                                    col,
+                                    Modifier.weight(1f)
+                                )
                             }
                         }
                     }
@@ -567,7 +634,12 @@ private fun DaySummaryPanel(
     onViewDetails: () -> Unit,
     modifier: Modifier
 ) {
-    var panchang by remember(selectedDate) { mutableStateOf<`in`.vedicpanchang.app.data.model.PanchangModel?>(null) }
+    var panchang by remember(selectedDate) {
+        mutableStateOf<`in`.vedicpanchang.app.data.model.PanchangModel?>(
+            null
+        )
+    }
+    val state by panchangVm.state.collectAsStateWithLifecycle()
     val panchangState by panchangVm.state.collectAsStateWithLifecycle()
     val location = (panchangState.location as? LocationUiState.Success)?.location
     LaunchedEffect(selectedDate, location) {
@@ -576,17 +648,27 @@ private fun DaySummaryPanel(
 
     LazyColumn(modifier = modifier.padding(16.dp)) {
         item {
-            val javaLocale = if (locale == "hi" || locale == "sa") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
-            val cal = java.util.Calendar.getInstance().apply { set(selectedDate.year, selectedDate.month.ordinal, selectedDate.day) }
+            val javaLocale =
+                if (locale == "hi" || locale == "sa") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
+            val cal = java.util.Calendar.getInstance()
+                .apply { set(selectedDate.year, selectedDate.month.ordinal, selectedDate.day) }
             val fmt = SimpleDateFormat("EEEE, d MMMM", javaLocale)
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(localizer.numerals(fmt.format(cal.time)), style = AppTextStyles.displaySmall, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text(
+                    localizer.numerals(fmt.format(cal.time)),
+                    style = AppTextStyles.displaySmall,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
                 TextButton(onClick = onViewDetails) {
-                    Text(strings["full_details"] ?: "Full Details →", style = AppTextStyles.labelLarge.copy(color = AppColors.Primary))
+                    Text(
+                        strings["full_details"] ?: "Full Details →",
+                        style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)
+                    )
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -607,6 +689,8 @@ private fun DaySummaryPanel(
                 onAdd = onAddNote
             )
         }
+
+
     }
 }
 
@@ -617,7 +701,8 @@ private fun PanchangSummaryRows(
     localizer: `in`.vedicpanchang.app.l10n.PanchangLocalizer
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardBorderColor =
+        if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
     val cardShape = RoundedCornerShape(12.dp)
     val tz = TimeZone.currentSystemDefault()
     val sunrise = p.sunrise.toLocalDateTime(tz)
@@ -639,11 +724,27 @@ private fun PanchangSummaryRows(
             QuickRow("⭐ ${strings["nakshatra"] ?: "Nakshatra"}", localizer.nakshatraName(p))
             QuickRow("☀️ ${strings["yoga"] ?: "Yoga"}", localizer.yogaWithAuspicious(p))
             QuickRow("🔀 ${strings["karana"] ?: "Karana"}", localizer.karanaName(p))
-            QuickRow("🌅 ${strings["sunrise"] ?: "Sunrise"}", localizer.numerals("%02d:%02d".format(sunrise.hour, sunrise.minute)))
-            QuickRow("⚠️ ${strings["rahu_kaal"] ?: "Rahu Kaal"}", localizer.numerals("%02d:%02d – %02d:%02d".format(rahuStart.hour, rahuStart.minute, rahuEnd.hour, rahuEnd.minute)))
+            QuickRow(
+                "🌅 ${strings["sunrise"] ?: "Sunrise"}",
+                localizer.numerals("%02d:%02d".format(sunrise.hour, sunrise.minute))
+            )
+            QuickRow(
+                "⚠️ ${strings["rahu_kaal"] ?: "Rahu Kaal"}",
+                localizer.numerals(
+                    "%02d:%02d – %02d:%02d".format(
+                        rahuStart.hour,
+                        rahuStart.minute,
+                        rahuEnd.hour,
+                        rahuEnd.minute
+                    )
+                )
+            )
             if (p.hasFestivals) {
                 Spacer(Modifier.height(8.dp))
-                Text("🪔 ${p.festivals.joinToString(" · ") { localizer.festivalName(it) }}", style = AppTextStyles.bodySmall.copy(color = AppColors.Primary))
+                Text(
+                    "🪔 ${p.festivals.joinToString(" · ") { localizer.festivalName(it) }}",
+                    style = AppTextStyles.bodySmall.copy(color = AppColors.Primary)
+                )
             }
         }
     }
@@ -704,12 +805,17 @@ private fun NotesSection(
             } else {
                 notes.forEach { note ->
                     Row(
-                        Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.Top
                     ) {
                         Column(Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(note.title, style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold))
+                                Text(
+                                    note.title,
+                                    style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                                )
                                 if (note.repeatType != RepeatType.NONE) {
                                     Spacer(Modifier.width(6.dp))
                                     Box(
@@ -719,10 +825,16 @@ private fun NotesSection(
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
                                         Text(
-                                            "🔁 ${note.repeatType.name.lowercase().replaceFirstChar { it.uppercaseChar() }}",
+                                            "🔁 ${
+                                                note.repeatType.name.lowercase()
+                                                    .replaceFirstChar { it.uppercaseChar() }
+                                            }",
                                             style = AppTextStyles.labelSmall.copy(
                                                 color = AppColors.Primary,
-                                                fontSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp)
+                                                fontSize = androidx.compose.ui.unit.TextUnit(
+                                                    9f,
+                                                    androidx.compose.ui.unit.TextUnitType.Sp
+                                                )
                                             )
                                         )
                                     }
@@ -732,7 +844,12 @@ private fun NotesSection(
                                 Text(note.description, style = AppTextStyles.bodySmall)
                         }
                         IconButton(onClick = { onDelete(note) }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
                     }
                 }
@@ -743,7 +860,11 @@ private fun NotesSection(
 
 @Composable
 private fun QuickRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp)
+    ) {
         Text(label, style = AppTextStyles.bodySmall, modifier = Modifier.width(140.dp))
         Text(value, style = AppTextStyles.bodyMedium, modifier = Modifier.weight(1f))
     }
@@ -809,11 +930,11 @@ private fun AddNoteSheet(
                 RepeatType.entries.forEach { option ->
                     val selected = option == repeatType
                     val label = when (option) {
-                        RepeatType.NONE    -> strings["repeat_none"]    ?: "None"
-                        RepeatType.DAILY   -> strings["repeat_daily"]   ?: "Daily"
-                        RepeatType.WEEKLY  -> strings["repeat_weekly"]  ?: "Weekly"
+                        RepeatType.NONE -> strings["repeat_none"] ?: "None"
+                        RepeatType.DAILY -> strings["repeat_daily"] ?: "Daily"
+                        RepeatType.WEEKLY -> strings["repeat_weekly"] ?: "Weekly"
                         RepeatType.MONTHLY -> strings["repeat_monthly"] ?: "Monthly"
-                        RepeatType.YEARLY  -> strings["repeat_yearly"]  ?: "Yearly"
+                        RepeatType.YEARLY -> strings["repeat_yearly"] ?: "Yearly"
                     }
                     Box(
                         modifier = Modifier
@@ -821,7 +942,9 @@ private fun AddNoteSheet(
                             .background(if (selected) AppColors.Primary else Color.Transparent)
                             .border(
                                 1.dp,
-                                if (selected) AppColors.Primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                                if (selected) AppColors.Primary else MaterialTheme.colorScheme.outline.copy(
+                                    alpha = 0.5f
+                                ),
                                 RoundedCornerShape(50)
                             )
                             .clickable { repeatType = option }
@@ -840,7 +963,10 @@ private fun AddNoteSheet(
 
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(strings["enable_notification"] ?: "Enable Notification", modifier = Modifier.weight(1f))
+                Text(
+                    strings["enable_notification"] ?: "Enable Notification",
+                    modifier = Modifier.weight(1f)
+                )
                 Switch(
                     checked = notifEnabled,
                     onCheckedChange = {
@@ -855,10 +981,16 @@ private fun AddNoteSheet(
             if (notifEnabled) {
                 Spacer(Modifier.height(6.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(strings["reminder_time"] ?: "Reminder Time", style = AppTextStyles.bodySmall, modifier = Modifier.weight(1f))
+                    Text(
+                        strings["reminder_time"] ?: "Reminder Time",
+                        style = AppTextStyles.bodySmall,
+                        modifier = Modifier.weight(1f)
+                    )
                     TextButton(onClick = {
                         TimePickerDialog(
                             context,
@@ -894,7 +1026,8 @@ private fun AddNoteSheet(
                                 reminderMinute
                             )
                             Instant.fromEpochMilliseconds(
-                                localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                                localDateTime.atZone(ZoneId.systemDefault()).toInstant()
+                                    .toEpochMilli()
                             )
                         } else {
                             null
@@ -907,7 +1040,11 @@ private fun AddNoteSheet(
                 enabled = !isSaving,
                 colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
             ) {
-                if (isSaving) CircularProgressIndicator(Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
+                if (isSaving) CircularProgressIndicator(
+                    Modifier.size(16.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
                 else Text(strings["save_note"] ?: "Save")
             }
         }

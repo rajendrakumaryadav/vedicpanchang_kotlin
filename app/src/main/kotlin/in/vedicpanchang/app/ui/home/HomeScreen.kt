@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
@@ -177,6 +179,17 @@ fun HomeScreen(
                     localizer = localizer,
                     navController = navController
                 )
+            }
+
+            // Eclipse alert card — shown only on eclipse days
+            item {
+                val todayState = state.todayPanchang
+                if (todayState is PanchangUiState.Success && todayState.panchang.hasEclipse) {
+                    EclipseAlertCard(
+                        panchang = todayState.panchang,
+                        strings = strings
+                    )
+                }
             }
 
             // Vedic Calendar card
@@ -360,6 +373,60 @@ fun HomeDateHeader(
                     style = AppTextStyles.labelLarge.copy(color = AppColors.Primary)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun EclipseAlertCard(
+    panchang: `in`.vedicpanchang.app.data.model.PanchangModel,
+    strings: Map<String, String>
+) {
+    val isLunar = panchang.lunarEclipse
+    val eclipseLabel = if (isLunar)
+        strings["lunar_eclipse"] ?: "Lunar Eclipse"
+    else
+        strings["solar_eclipse"] ?: "Solar Eclipse"
+    val eclipseEmoji = if (isLunar) "🌑" else "🌚"
+    val eclipseBg = Color(0xFF1A1A2E)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(eclipseBg)
+            .padding(16.dp)
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(eclipseEmoji, fontSize = 24.sp)
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = strings["eclipse_today"] ?: "Eclipse Today",
+                        style = AppTextStyles.labelLarge.copy(
+                            color = Color(0xFFFFD54F),
+                            fontSize = 13.sp
+                        )
+                    )
+                    Text(
+                        text = eclipseLabel,
+                        style = AppTextStyles.bodyMedium.copy(
+                            color = Color.White,
+                            fontSize = 16.sp
+                        )
+                    )
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = strings["eclipse_note"] ?: "Eclipse visible in some regions — verify with local sources",
+                style = AppTextStyles.bodySmall.copy(
+                    color = Color(0xFFBDBDBD),
+                    fontSize = 11.sp
+                )
+            )
         }
     }
 }

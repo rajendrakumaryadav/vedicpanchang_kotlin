@@ -180,6 +180,32 @@
     <string name="dasha_starts">आरंभ</string>
     <string name="dasha_ends">समाप्ति</string>
     <string name="years_short">वर्ष</string>
+    <!-- Dishasool -->
+    <string name="dishasool">दिशाशूल</string>
+    <string name="dishasool_subtitle">आज की अशुभ दिशा</string>
+    <string name="direction_to_avoid">परिहार्य दिशा</string>
+    <string name="parihaar">परिहार (उपाय)</string>
+    <string name="dir_north">उत्तर</string>
+    <string name="dir_south">दक्षिण</string>
+    <string name="dir_east">पूर्व</string>
+    <string name="dir_west">पश्चिम</string>
+    <string name="parihaar_0">यात्रा से पहले दलिया या घी खाएँ</string>
+    <string name="parihaar_1">दर्पण देखें या दूध पीएँ</string>
+    <string name="parihaar_2">गुड़ या धनिया खाएँ</string>
+    <string name="parihaar_3">हरी धनिया पत्ती या तिल खाएँ</string>
+    <string name="parihaar_4">पीली सरसों या जीरा खाएँ</string>
+    <string name="parihaar_5">दही या जौ खाएँ</string>
+    <string name="parihaar_6">अदरक या तेल का सेवन करें</string>
+    <!-- Adhikmash -->
+    <string name="adhikmash">अधिकमास</string>
+    <string name="adhikmash_running">अधिक मास चल रहा है</string>
+    <string name="adhikmash_label">अधिक मास</string>
+    <!-- Eclipse -->
+    <string name="lunar_eclipse">चंद्र ग्रहण</string>
+    <string name="solar_eclipse">सूर्य ग्रहण</string>
+    <string name="eclipse_today">आज ग्रहण</string>
+    <string name="eclipse_note">ग्रहण कुछ क्षेत्रों में दृश्य — स्थानीय स्रोतों से सत्यापित करें</string>
+
     <string name="choghadiya">चोघड़िया</string>
     <string name="day_choghadiya">दिन का चोघड़िया</string>
     <string name="night_choghadiya">रात का चोघड़िया</string>

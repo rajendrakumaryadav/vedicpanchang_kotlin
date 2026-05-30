@@ -62,7 +62,7 @@ fun TodayPanchangCard(
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
 
-            // Header row — "Panchang" label + optional festival badge
+            // Header row — "Panchang" label + optional festival/eclipse badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -72,8 +72,21 @@ fun TodayPanchangCard(
                     strings["panchang"] ?: "Panchang",
                     style = AppTextStyles.saffronLabel
                 )
-                if (panchang.hasFestivals) {
-                    FestivalBadge(name = localizer.festivalName(panchang.primaryFestival!!))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (panchang.isAdhikmash) {
+                        AdhikmashBadge(strings["adhikmash_label"] ?: "Adhikmash")
+                    }
+                    if (panchang.hasEclipse) {
+                        EclipseBadge(
+                            label = if (panchang.lunarEclipse)
+                                strings["lunar_eclipse"] ?: "Lunar Eclipse"
+                            else
+                                strings["solar_eclipse"] ?: "Solar Eclipse"
+                        )
+                    }
+                    if (panchang.hasFestivals && !panchang.hasEclipse) {
+                        FestivalBadge(name = localizer.festivalName(panchang.primaryFestival!!))
+                    }
                 }
             }
 
@@ -310,6 +323,40 @@ fun FestivalBadge(name: String) {
             .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
         Text(name, style = AppTextStyles.labelSmall.copy(color = Color.White, fontSize = 11.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+fun AdhikmashBadge(label: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF6A1B9A), Color(0xFF9C27B0))))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            "🌀 $label",
+            style = AppTextStyles.labelSmall.copy(color = Color.White, fontSize = 10.sp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun EclipseBadge(label: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF212121), Color(0xFF424242))))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            "🌑 $label",
+            style = AppTextStyles.labelSmall.copy(color = Color(0xFFFFD54F), fontSize = 10.sp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

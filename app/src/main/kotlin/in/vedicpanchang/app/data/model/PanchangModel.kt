@@ -67,10 +67,19 @@ data class PanchangModel(
     val moonLongitude: Double,
 
     // Vedic lunar month index (0=Chaitra … 11=Phalguna)
-    val lunarMonthIndex: Int
+    val lunarMonthIndex: Int,
+
+    // Adhikmash (intercalary lunar month): true when no solar sankranti in this lunar month
+    val isAdhikmash: Boolean,
+    val adhikmashName: String?,
+
+    // Eclipse possibility for this day
+    val lunarEclipse: Boolean,
+    val solarEclipse: Boolean
 ) {
     val tithiDisplay: String get() = "$paksha $tithiName"
     val tithiNumber: Int get() = tithiIndex + 1
     val hasFestivals: Boolean get() = festivals.isNotEmpty()
     val primaryFestival: String? get() = festivals.firstOrNull()
+    val hasEclipse: Boolean get() = lunarEclipse || solarEclipse
 }

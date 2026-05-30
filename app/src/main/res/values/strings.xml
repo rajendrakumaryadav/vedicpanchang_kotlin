@@ -217,6 +217,34 @@
     <string name="dasha_ends">Ends</string>
     <string name="years_short">yrs</string>
 
+    <!-- Dishasool -->
+    <string name="dishasool">Dishasool</string>
+    <string name="dishasool_subtitle">Inauspicious direction today</string>
+    <string name="direction_to_avoid">Direction to Avoid</string>
+    <string name="parihaar">Parihaar (Counter-Measure)</string>
+    <string name="dir_north">North</string>
+    <string name="dir_south">South</string>
+    <string name="dir_east">East</string>
+    <string name="dir_west">West</string>
+    <string name="parihaar_0">Eat porridge or ghee before departing</string>
+    <string name="parihaar_1">Look in a mirror or consume milk</string>
+    <string name="parihaar_2">Eat jaggery or coriander seed</string>
+    <string name="parihaar_3">Eat green coriander leaf or sesame seeds</string>
+    <string name="parihaar_4">Consume yellow mustard seed or cumin</string>
+    <string name="parihaar_5">Consume curd (yogurt) or barley</string>
+    <string name="parihaar_6">Consume ginger or oil</string>
+
+    <!-- Adhikmash -->
+    <string name="adhikmash">Adhikmash</string>
+    <string name="adhikmash_running">Adhik Maas is running</string>
+    <string name="adhikmash_label">Intercalary Month</string>
+
+    <!-- Eclipse -->
+    <string name="lunar_eclipse">Lunar Eclipse</string>
+    <string name="solar_eclipse">Solar Eclipse</string>
+    <string name="eclipse_today">Eclipse Today</string>
+    <string name="eclipse_note">Eclipse visible in some regions — verify with local sources</string>
+
     <!-- Choghadiya & Hora -->
     <string name="choghadiya">Choghadiya</string>
     <string name="hora">Hora (Planetary Hour)</string>
