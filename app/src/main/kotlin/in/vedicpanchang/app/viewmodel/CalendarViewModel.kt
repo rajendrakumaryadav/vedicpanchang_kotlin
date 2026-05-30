@@ -104,7 +104,6 @@ class CalendarViewModel @Inject constructor(
 
     // ── Note CRUD ─────────────────────────────────────────────────────────────
 
-    @RequiresApi(Build.VERSION_CODES.M)
     fun addNote(
         date: LocalDate,
         title: String,
