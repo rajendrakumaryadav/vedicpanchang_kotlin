@@ -71,8 +71,6 @@ fun SettingsScreen(
     val themeMode by settingsVm.themeMode.collectAsStateWithLifecycle()
     val notifSettings by settingsVm.notificationSettings.collectAsStateWithLifecycle()
     var showLangSheet by remember { mutableStateOf(false) }
-    var testScheduled by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -150,22 +148,6 @@ fun SettingsScreen(
                     SettingSwitch(label = strings["3_days_before"] ?: "3 Days Before", subtitle = strings["remind_3_days"] ?: "", checked = notifSettings.days3, onCheckedChange = { settingsVm.toggle3Days(it) })
                     SettingSwitch(label = strings["1_day_before"] ?: "1 Day Before", subtitle = strings["remind_1_day"] ?: "", checked = notifSettings.day1, onCheckedChange = { settingsVm.toggle1Day(it) })
                     SettingSwitch(label = strings["on_the_day"] ?: "On the Day", subtitle = strings["remind_same_day"] ?: "", checked = notifSettings.sameDay, onCheckedChange = { settingsVm.toggleSameDay(it) })
-                }
-            }
-
-            // Test notification
-            item {
-                SettingsCard {
-                    ListTile(
-                        leading = { Text("🔔", style = AppTextStyles.bodyLarge) },
-                        title = strings["test_notification"] ?: "Test Notification",
-                        subtitle = if (testScheduled) (strings["test_notification_scheduled"] ?: "Scheduled") else (strings["send_test_notification"] ?: "Send in 10 seconds"),
-                        trailing = null,
-                        onClick = {
-                            val result = settingsVm.sendTestNotification()
-                            testScheduled = result
-                        }
-                    )
                 }
             }
 

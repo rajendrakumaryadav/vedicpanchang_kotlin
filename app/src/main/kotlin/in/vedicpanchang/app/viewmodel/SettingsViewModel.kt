@@ -104,19 +104,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    // ── Test notification ─────────────────────────────────────────────────────
-
-    fun sendTestNotification(): Boolean {
-        val triggerMs = System.currentTimeMillis() + 10_000L
-        val strings = AppStrings.of(locale.value)
-        return notificationService.schedule(
-            id = 1,
-            title = strings["test_notification"] ?: "Test Notification",
-            body = strings["send_test_notification"] ?: "Test notification in 10 seconds",
-            triggerAtMs = triggerMs
-        )
-    }
-
     // ── App version ───────────────────────────────────────────────────────────
 
     val appVersion: String by lazy {
