@@ -81,7 +81,10 @@ class PanchangViewModel @Inject constructor(
 
     fun loadLocation() {
         viewModelScope.launch {
-            _state.update { it.copy(location = LocationUiState.Loading) }
+            // Only show loading spinner on the very first load; skip flicker on re-calls
+            if (_state.value.location !is LocationUiState.Success) {
+                _state.update { it.copy(location = LocationUiState.Loading) }
+            }
             try {
                 // Read cache first (instant)
                 val cached = preferences.cachedLocation.first()

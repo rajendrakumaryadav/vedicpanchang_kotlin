@@ -5,7 +5,6 @@ import android.content.Context
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
-import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -14,6 +13,7 @@ import `in`.vedicpanchang.app.data.datasource.AppPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -56,13 +56,23 @@ class LocationService @Inject constructor(
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocationOrNull(): LocationData? {
         return try {
+            // Phase 1: balanced accuracy (WiFi/cell) with a 10s timeout — fast first fix
             val cts = CancellationTokenSource()
-            val position = suspendCancellableCoroutine<Location?> { cont ->
-                fusedClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.token)
+            val position = withTimeoutOrNull(10_000L) {
+                suspendCancellableCoroutine<Location?> { cont ->
+                    fusedClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cts.token)
+                        .addOnSuccessListener { loc: Location? -> cont.resume(loc) }
+                        .addOnFailureListener { cont.resume(null) }
+                    cont.invokeOnCancellation { cts.cancel() }
+                }
+            }
+            // Phase 2: fall back to last cached device location if Phase 1 timed out or failed
+            ?: suspendCancellableCoroutine<Location?> { cont ->
+                fusedClient.lastLocation
                     .addOnSuccessListener { loc: Location? -> cont.resume(loc) }
                     .addOnFailureListener { cont.resume(null) }
-                cont.invokeOnCancellation { cts.cancel() }
-            } ?: return null
+            }
+            ?: return null
 
             val result = reverseGeocode(position.latitude, position.longitude)
             preferences.saveCachedLocation(
