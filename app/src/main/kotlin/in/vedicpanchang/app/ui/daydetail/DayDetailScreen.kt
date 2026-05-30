@@ -218,7 +218,9 @@ private fun VedicCalendarSection(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     val monthNum = panchang.date.month.ordinal + 1
     val vedicMonth = localizer.vedicMonthName(panchang)
     val vikramYear = localizer.numerals(
@@ -237,7 +239,8 @@ private fun VedicCalendarSection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
@@ -312,6 +315,8 @@ private fun AuspiciousMuhurtasCard(
     localizer: PanchangLocalizer
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     val vijaya = panchang.auspiciousMuhurtas.find { it.id == "vijaya_muhurta" }?.range
     val godhuli = panchang.auspiciousMuhurtas.find { it.id == "godhuli_muhurta" }?.range
     val now = remember { Clock.System.now() }
@@ -320,7 +325,8 @@ private fun AuspiciousMuhurtasCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
@@ -352,13 +358,16 @@ private fun InauspiciousPeriodsCard(
     localizer: PanchangLocalizer
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     val now = remember { Clock.System.now() }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
@@ -465,6 +474,8 @@ private fun DaytimeMuhurtasCard(
     localizer: PanchangLocalizer
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     var expanded by remember { mutableStateOf(false) }
     val muhurtas = panchang.daytimeMuhurtas
     val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
@@ -474,7 +485,8 @@ private fun DaytimeMuhurtasCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Row(
@@ -592,7 +604,9 @@ private fun AstronomicalDataCard(
     strings: Map<String, String>,
     localizer: PanchangLocalizer
 ) {
-    MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     var expanded by remember { mutableStateOf(false) }
     val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
     val textPrimary = MaterialTheme.colorScheme.onSurface
@@ -602,7 +616,8 @@ private fun AstronomicalDataCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Row(

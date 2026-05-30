@@ -9,6 +9,7 @@ data class CustomCalendarNote(
     val title: String,
     val description: String,
     val reminderAt: Instant?,
+    val repeatType: RepeatType = RepeatType.NONE,
     val createdAt: Instant
 ) {
     val notificationId: Int get() = 200000 + (id % 700000)
@@ -20,10 +21,12 @@ data class CustomCalendarNote(
         description: String = this.description,
         reminderAt: Instant? = this.reminderAt,
         clearReminder: Boolean = false,
+        repeatType: RepeatType = this.repeatType,
         createdAt: Instant = this.createdAt
     ) = copy(
         id = id, date = date, title = title, description = description,
         reminderAt = if (clearReminder) null else reminderAt,
+        repeatType = repeatType,
         createdAt = createdAt
     )
 }

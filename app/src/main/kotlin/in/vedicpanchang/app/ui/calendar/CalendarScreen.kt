@@ -13,6 +13,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.input.pointer.pointerInput
@@ -76,6 +79,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import `in`.vedicpanchang.app.R
 import `in`.vedicpanchang.app.data.model.CustomCalendarNote
+import `in`.vedicpanchang.app.data.model.RepeatType
 import `in`.vedicpanchang.app.ui.navigation.AppBottomNav
 import `in`.vedicpanchang.app.ui.navigation.NavRoutes
 import `in`.vedicpanchang.app.ui.theme.AppColors
@@ -612,13 +616,19 @@ private fun PanchangSummaryRows(
     strings: Map<String, String>,
     localizer: `in`.vedicpanchang.app.l10n.PanchangLocalizer
 ) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(12.dp)
     val tz = TimeZone.currentSystemDefault()
     val sunrise = p.sunrise.toLocalDateTime(tz)
     val rahuStart = p.rahuKaal.start.toLocalDateTime(tz)
     val rahuEnd = p.rahuKaal.end.toLocalDateTime(tz)
 
     Box(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(AppColors.Primary.copy(alpha = 0.08f))
             .padding(12.dp)
     ) {
@@ -698,7 +708,26 @@ private fun NotesSection(
                         verticalAlignment = Alignment.Top
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text(note.title, style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(note.title, style = AppTextStyles.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold))
+                                if (note.repeatType != RepeatType.NONE) {
+                                    Spacer(Modifier.width(6.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(50))
+                                            .background(AppColors.Primary.copy(alpha = 0.12f))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            "🔁 ${note.repeatType.name.lowercase().replaceFirstChar { it.uppercaseChar() }}",
+                                            style = AppTextStyles.labelSmall.copy(
+                                                color = AppColors.Primary,
+                                                fontSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp)
+                                            )
+                                        )
+                                    }
+                                }
+                            }
                             if (note.description.isNotEmpty())
                                 Text(note.description, style = AppTextStyles.bodySmall)
                         }
@@ -734,6 +763,7 @@ private fun AddNoteSheet(
     var notifEnabled by remember { mutableStateOf(false) }
     var reminderHour by remember { mutableIntStateOf(8) }
     var reminderMinute by remember { mutableIntStateOf(0) }
+    var repeatType by remember { mutableStateOf(RepeatType.NONE) }
     var isSaving by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -762,7 +792,53 @@ private fun AddNoteSheet(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
+            Spacer(Modifier.height(12.dp))
+
+            // ── Repeat selector ──────────────────────────────────────────────
+            Text(
+                strings["repeat"] ?: "Repeat",
+                style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+            )
             Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                RepeatType.entries.forEach { option ->
+                    val selected = option == repeatType
+                    val label = when (option) {
+                        RepeatType.NONE    -> strings["repeat_none"]    ?: "None"
+                        RepeatType.DAILY   -> strings["repeat_daily"]   ?: "Daily"
+                        RepeatType.WEEKLY  -> strings["repeat_weekly"]  ?: "Weekly"
+                        RepeatType.MONTHLY -> strings["repeat_monthly"] ?: "Monthly"
+                        RepeatType.YEARLY  -> strings["repeat_yearly"]  ?: "Yearly"
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(if (selected) AppColors.Primary else Color.Transparent)
+                            .border(
+                                1.dp,
+                                if (selected) AppColors.Primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                                RoundedCornerShape(50)
+                            )
+                            .clickable { repeatType = option }
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            label,
+                            style = AppTextStyles.labelSmall.copy(
+                                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(strings["enable_notification"] ?: "Enable Notification", modifier = Modifier.weight(1f))
                 Switch(
@@ -823,7 +899,7 @@ private fun AddNoteSheet(
                         } else {
                             null
                         }
-                        calendarVm.addNote(selectedDate, title, description, reminderAt)
+                        calendarVm.addNote(selectedDate, title, description, reminderAt, repeatType)
                         onDismiss()
                     }
                 },

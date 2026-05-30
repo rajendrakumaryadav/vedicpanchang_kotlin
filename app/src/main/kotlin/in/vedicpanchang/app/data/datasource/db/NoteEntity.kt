@@ -10,5 +10,6 @@ data class NoteEntity(
     val title: String,
     val description: String,
     val reminderAtMs: Long?,         // Instant.toEpochMilliseconds(), null if no reminder
+    val repeatType: String = "NONE", // RepeatType name
     val createdAtMs: Long            // Instant.toEpochMilliseconds()
 )

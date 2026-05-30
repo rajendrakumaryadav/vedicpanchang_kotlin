@@ -2,6 +2,7 @@ package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -43,6 +44,8 @@ fun SunMoonCard(
     locale: String
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(24.dp)
 
     val sunProgress = calculateProgress(panchang.sunrise, panchang.sunset, liveNow)
     val moonProgress = calculateProgress(panchang.moonrise, panchang.moonset, liveNow)
@@ -54,7 +57,8 @@ fun SunMoonCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(24.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {

@@ -1,6 +1,7 @@
 package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,8 @@ fun VedicCalendarCard(
     localizer: PanchangLocalizer
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     // Using ordinal + 1 for month number
     val monthNum = panchang.date.month.ordinal + 1
     val vikramYear = localizer.vikramSamvatYear(panchang.date.year, monthNum)
@@ -46,7 +49,8 @@ fun VedicCalendarCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(colors.surface)
             .padding(16.dp)
     ) {

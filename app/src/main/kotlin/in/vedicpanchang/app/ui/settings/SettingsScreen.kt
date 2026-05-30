@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -364,10 +365,14 @@ fun SectionHeader(title: String) {
 
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(16.dp)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
     ) { content() }
 }

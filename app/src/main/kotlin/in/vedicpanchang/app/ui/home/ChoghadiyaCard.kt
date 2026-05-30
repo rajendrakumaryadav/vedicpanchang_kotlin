@@ -38,6 +38,8 @@ fun ChoghadiyaCard(
 ) {
     val colors = MaterialTheme.colorScheme
     val isDark = colors.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     val now = Clock.System.now()
     val weekday = panchang.date.dayOfWeek.isoDayNumber
     val slots = remember(panchang) {
@@ -55,7 +57,8 @@ fun ChoghadiyaCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(colors.surface)
             .padding(16.dp)
     ) {

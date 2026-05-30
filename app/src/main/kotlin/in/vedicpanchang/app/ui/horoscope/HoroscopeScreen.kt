@@ -1,6 +1,7 @@
 package `in`.vedicpanchang.app.ui.horoscope
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -395,7 +396,12 @@ private fun BirthInputForm(
         )
     }
 
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(20.dp)
     val fieldBg = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    val fieldShape = RoundedCornerShape(12.dp)
+    val fieldBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.30f) else Color(0xFFCBA35C).copy(alpha = 0.40f)
     val labelStyle = AppTextStyles.labelSmall.copy(
         fontSize = 11.sp,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
@@ -406,7 +412,8 @@ private fun BirthInputForm(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
@@ -417,7 +424,8 @@ private fun BirthInputForm(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(fieldShape)
+                    .border(1.dp, fieldBorderColor, fieldShape)
                     .background(fieldBg)
                     .clickable { showDatePicker = true }
                     .padding(horizontal = 14.dp, vertical = 14.dp),
@@ -436,7 +444,8 @@ private fun BirthInputForm(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(fieldShape)
+                    .border(1.dp, fieldBorderColor, fieldShape)
                     .background(fieldBg)
                     .clickable { showTimePicker = true }
                     .padding(horizontal = 14.dp, vertical = 14.dp),
@@ -455,7 +464,8 @@ private fun BirthInputForm(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(fieldShape)
+                    .border(1.dp, fieldBorderColor, fieldShape)
                     .background(fieldBg)
                     .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -543,6 +553,9 @@ private fun ChartSummaryCard(
     locale: String
 ) {
     TimeZone.currentSystemDefault()
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardShape = RoundedCornerShape(16.dp)
     val javaLocale = if (locale == "hi" || locale == "sa") Locale.forLanguageTag("hi-IN") else Locale.ENGLISH
     val birthDate = SimpleDateFormat("d MMM yyyy, HH:mm", javaLocale)
         .format(Date(chart.birthDetails.birthInstant.toEpochMilliseconds()))
@@ -551,7 +564,8 @@ private fun ChartSummaryCard(
 
     Box(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(cardShape)
+            .border(1.dp, cardBorderColor, cardShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
