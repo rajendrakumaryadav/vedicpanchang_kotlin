@@ -23,7 +23,7 @@ echo "Patch: $PATCH"
 read -rp "Commit message [Release v-$VERSION]: " COMMIT_MSG
 COMMIT_MSG="${COMMIT_MSG:-Release v-$VERSION}"
 
-TAG="v$VERSION"
+TAG="v-$VERSION"
 
 # Commit if there are changes
 if ! git diff --quiet || ! git diff --cached --quiet; then
