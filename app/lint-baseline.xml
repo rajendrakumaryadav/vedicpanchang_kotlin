@@ -4,12 +4,23 @@
     <issue
         id="NewApi"
         message="Call requires API level 23 (current min is 21): `schedule`"
-        errorLine1="                if (persistedReminder != null &amp;&amp; allowNotification) {"
+        errorLine1="                    val scheduled = notificationService.schedule("
         errorLine2="                                                        ~~~~~~~~">
         <location
             file="src/main/kotlin/in/vedicpanchang/app/viewmodel/CalendarViewModel.kt"
-            line="139"
+            line="160"
             column="57"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 23 (current min is 21): `schedule`"
+        errorLine1="            notificationService.schedule("
+        errorLine2="                                ~~~~~~~~">
+        <location
+            file="src/main/kotlin/in/vedicpanchang/app/viewmodel/CalendarViewModel.kt"
+            line="225"
+            column="33"/>
     </issue>
 
     <issue
@@ -316,7 +327,7 @@
         errorLine2="    ~~~~~~~~">
         <location
             file="src/main/kotlin/in/vedicpanchang/app/ui/daydetail/DayDetailScreen.kt"
-            line="544"
+            line="556"
             column="5"/>
     </issue>
 
@@ -559,6 +570,28 @@
             file="src/main/res/values/font_certs.xml"
             line="17"
             column="19"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_launcher_background` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_launcher_background.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.mipmap.ic_launcher_round` appears to be unused"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
+            line="2"
+            column="1"/>
     </issue>
 
     <issue
@@ -2699,35 +2732,35 @@
 
     <issue
         id="IconLauncherShape"
-        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        message="Launcher icon used as round icon did not have a circular shape">
         <location
             file="src/main/res/mipmap-hdpi/ic_launcher.png"/>
     </issue>
 
     <issue
         id="IconLauncherShape"
-        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        message="Launcher icon used as round icon did not have a circular shape">
         <location
             file="src/main/res/mipmap-mdpi/ic_launcher.png"/>
     </issue>
 
     <issue
         id="IconLauncherShape"
-        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        message="Launcher icon used as round icon did not have a circular shape">
         <location
             file="src/main/res/mipmap-xhdpi/ic_launcher.png"/>
     </issue>
 
     <issue
         id="IconLauncherShape"
-        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        message="Launcher icon used as round icon did not have a circular shape">
         <location
             file="src/main/res/mipmap-xxhdpi/ic_launcher.png"/>
     </issue>
 
     <issue
         id="IconLauncherShape"
-        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        message="Launcher icon used as round icon did not have a circular shape">
         <location
             file="src/main/res/mipmap-xxxhdpi/ic_launcher.png"/>
     </issue>
@@ -2739,17 +2772,6 @@
         errorLine2="^">
         <location
             file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
-            line="2"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="MonochromeLauncherIcon"
-        message="The application adaptive roundIcon is missing a monochrome tag"
-        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
-        errorLine2="^">
-        <location
-            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
             line="2"
             column="1"/>
     </issue>
