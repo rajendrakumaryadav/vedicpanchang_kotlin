@@ -1,25 +1,16 @@
 package `in`.vedicpanchang.astronomy
 
-import `in`.vedicpanchang.astronomy.AstronomyService.moonAltitudeDegrees
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import kotlin.math.PI
-import kotlin.math.acos
-import kotlin.math.asin
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.floor
-import kotlin.math.roundToLong
-import kotlin.math.sin
-import kotlin.math.tan
-import kotlin.time.Instant
+import kotlin.math.*
 
 // Result types for rise/set pairs
 data class SunriseSunset(val sunrise: Instant, val sunset: Instant)
 data class MoonriseMoonset(val moonrise: Instant, val moonset: Instant)
-private data class EclipticPosition(val longitude: Double, val latitude: Double)
+private data class EclipticPosition(val longitude: Double, val latitude: Double, val distanceEarthRadii: Double)
 private data class EquatorialPosition(val rightAscensionDeg: Double, val declinationDeg: Double)
 
 /**
@@ -36,7 +27,6 @@ object AstronomyService {
     private const val DEG2RAD = PI / 180.0
     private const val RAD2DEG = 180.0 / PI
     private const val SUN_RISE_SET_ALT = 0.0
-    private const val MOON_RISE_SET_ALT = 0.30
 
     private val sunriseSunsetCache = LinkedHashMap<String, SunriseSunset>()
     private val moonriseMoonsetCache = LinkedHashMap<String, MoonriseMoonset>()
@@ -47,37 +37,12 @@ object AstronomyService {
     private val moonLongitudeCache = LinkedHashMap<String, Double>()
     private val moonLongitudeSiderealCache = LinkedHashMap<String, Double>()
 
-    //
-    private fun moonAltitudeDegrees(jd: Double, lat: Double, lon: Double): Double {
-        val moonPos = moonEclipticPosition(jd)
-        val moonEq = eclipticToEquatorial(moonPos.longitude, moonPos.latitude, jd)
-        val lst = normalizeAngle(greenwichMeanSiderealTime(jd) + lon)
-        val ha = normalizeSignedAngle(lst - moonEq.rightAscensionDeg) * DEG2RAD
-
-        // 1. Calculate Geocentric Altitude (as you were doing before)
-        val geoAltRad = asin(
-            sin(lat * DEG2RAD) * sin(moonEq.declinationDeg * DEG2RAD) +
-                    cos(lat * DEG2RAD) * cos(moonEq.declinationDeg * DEG2RAD) * cos(ha)
-        )
-
-        // 2. Apply Topocentric Parallax Correction (Meeus Chapter 40)
-        // 60.27 is the mean distance of the moon in Earth radii; sin(1/60.27) ≈ 0.01659
-        val horizontalParallaxRad = 0.016593
-        val parallaxCorrection = horizontalParallaxRad * cos(geoAltRad)
-
-        // Subtract parallax because an observer on the crust sees the moon lower than the Earth's center
-        val topoAltRad = geoAltRad - parallaxCorrection
-
-        return topoAltRad * RAD2DEG
-    }
     // ─── Julian Day ───────────────────────────────────────────────────────────
 
     fun julianDay(year: Int, month: Int, day: Int, ut: Double): Double {
         var y = year
         var m = month
-        if (m <= 2) {
-            y -= 1; m += 12
-        }
+        if (m <= 2) { y -= 1; m += 12 }
         val a = floor(y.toDouble() / 100.0).toInt()
         val b = 2 - a + floor(a.toDouble() / 4.0).toInt()
         return floor(365.25 * (y + 4716)) +
@@ -88,7 +53,7 @@ object AstronomyService {
     fun julianDayFromInstant(instant: Instant): Double {
         val dt = instant.toLocalDateTime(TimeZone.UTC)
         val ut = dt.hour + dt.minute / 60.0 + dt.second / 3600.0
-        return julianDay(dt.year, dt.month.ordinal + 1, dt.day, ut)
+        return julianDay(dt.year, dt.month.number, dt.day, ut)
     }
 
     fun julianCenturies(jd: Double): Double = (jd - 2451545.0) / 36525.0
@@ -109,8 +74,8 @@ object AstronomyService {
 
         val centerEq =
             (1.914602 - 0.004817 * t - 0.000014 * t * t) * sin(mRad) +
-                    (0.019993 - 0.000101 * t) * sin(2 * mRad) +
-                    0.000289 * sin(3 * mRad)
+            (0.019993 - 0.000101 * t) * sin(2 * mRad) +
+            0.000289 * sin(3 * mRad)
 
         val sunTrueLon = l0 + centerEq
         val omega = 125.04 - 1934.136 * t
@@ -125,8 +90,6 @@ object AstronomyService {
         val key = jdKey(jd)
         readLru(lahiriAyanamshaCache, key)?.let { return it }
 
-        // Lahiri ayanamsha value for J2000.0 is approximately 23.85°
-        // Annual precession is ~50.27" per year
         val ayan = 23.85 + (50.27 / 3600.0) * (jd - 2451545.0) / 365.25
 
         val result = normalizeAngle(ayan)
@@ -169,32 +132,63 @@ object AstronomyService {
         val cacheKey = riseSetCacheKey(date, lat, lon)
         readLru(sunriseSunsetCache, cacheKey)?.let { return it }
 
-        // Use a safe calculation window to ensure we catch local horizon events
-        // regardless of UTC/local timezone offsets
-        val jdNoon = julianDay(date.year, date.month.number, date.day, 12.0)
+        val altitudeCache = HashMap<String, Double>()
+        fun sunAltitudeAt(jd: Double): Double =
+            altitudeCache.getOrPut(jdKey(jd)) { sunAltitudeDegrees(jd, lat, lon) }
 
-        // Bypass the heavy 24-hour iteration loop entirely and use your built-in NOAA solar tracking
-        val solarNoonMins = solarNoonUtcMinutes(jdNoon, lon)
+        val jdStart = julianDay(date.year, date.month.number, date.day, 0.0)
+        var riseJd: Double? = null
+        var setJd: Double? = null
 
-        // 360 minutes = 6 hours before/after solar noon
-        val sunriseMins = sunEventUtcMinutes(jdNoon, lat, lon, true, solarNoonMins - 360.0)
-        val sunsetMins = sunEventUtcMinutes(jdNoon, lat, lon, false, solarNoonMins + 360.0)
+        var prevJd = jdStart
+        var prevAlt = sunAltitudeAt(prevJd)
 
-        val sunriseInstant =
-            roundToNearestMinute(instantFromDayAndMinutes(date, normalizeDayMinutes(sunriseMins)))
-        var sunsetInstant =
-            roundToNearestMinute(instantFromDayAndMinutes(date, normalizeDayMinutes(sunsetMins)))
+        for (hour in 1..24) {
+            val nextJd = jdStart + hour / 24.0
+            val nextAlt = sunAltitudeAt(nextJd)
+            val prevF = prevAlt - SUN_RISE_SET_ALT
+            val nextF = nextAlt - SUN_RISE_SET_ALT
 
-        if (!sunsetInstant.isAfter(sunriseInstant)) {
-            sunsetInstant =
-                Instant.fromEpochMilliseconds(sunsetInstant.toEpochMilliseconds() + 86400_000L)
+            if (prevF == 0.0) {
+                if (nextAlt > prevAlt) riseJd = riseJd ?: prevJd
+                else setJd = setJd ?: prevJd
+            } else if (prevF * nextF < 0.0) {
+                val eventJd = refineAltitudeCrossing(prevJd, nextJd, SUN_RISE_SET_ALT, ::sunAltitudeAt)
+                if (nextAlt > prevAlt) riseJd = riseJd ?: eventJd
+                else setJd = setJd ?: eventJd
+            }
+
+            prevJd = nextJd
+            prevAlt = nextAlt
         }
 
-        val result = SunriseSunset(sunriseInstant, sunsetInstant)
+        if (riseJd == null || setJd == null) {
+            val jdNoon = julianDay(date.year, date.month.number, date.day, 12.0)
+            val solarNoonMins = solarNoonUtcMinutes(jdNoon, lon)
+            val sunriseMins = sunEventUtcMinutes(jdNoon, lat, lon, true, solarNoonMins - 360.0)
+            val sunsetMins = sunEventUtcMinutes(jdNoon, lat, lon, false, solarNoonMins + 360.0)
+
+            var fallbackRise = instantFromDayAndMinutes(date, normalizeDayMinutes(sunriseMins))
+            var fallbackSet = instantFromDayAndMinutes(date, normalizeDayMinutes(sunsetMins))
+            if (!fallbackSet.isAfter(fallbackRise)) {
+                fallbackSet = Instant.fromEpochMilliseconds(
+                    fallbackSet.toEpochMilliseconds() + 86400_000L
+                )
+            }
+            val result = SunriseSunset(roundToNearestMinute(fallbackRise), roundToNearestMinute(fallbackSet))
+            writeLru(sunriseSunsetCache, cacheKey, result, MAX_RISE_SET_CACHE)
+            return result
+        }
+
+        var sunrise = jdToInstant(riseJd)
+        var sunset = jdToInstant(setJd)
+        if (!sunset.isAfter(sunrise)) {
+            sunset = Instant.fromEpochMilliseconds(sunset.toEpochMilliseconds() + 86400_000L)
+        }
+        val result = SunriseSunset(roundToNearestMinute(sunrise), roundToNearestMinute(sunset))
         writeLru(sunriseSunsetCache, cacheKey, result, MAX_RISE_SET_CACHE)
         return result
     }
-
 
     // ─── Moonrise / Moonset ──────────────────────────────────────────────────
 
@@ -206,20 +200,18 @@ object AstronomyService {
         fun moonAltitudeAt(jd: Double): Double =
             altitudeCache.getOrPut(jdKey(jd)) { moonAltitudeDegrees(jd, lat, lon) }
 
-        // Fix: Use date.month.number universally
         val jdStart = julianDay(date.year, date.month.number, date.day, 0.0)
         var riseJd: Double? = null
         var setJd: Double? = null
 
-        // Refraction (~0.567°) minus Semi-diameter (~0.25°) leaves a true horizon target of ~ -0.317°.
-        // Since we already subtracted Parallax (~0.95°) inside the altitude function,
-        // the net altitude threshold targets approximately +0.133°
+        // Refraction (~0.567°) minus standard dynamic disk semi-diameter (~0.25°) = 0.317° target horizon.
+        // Since we already subtracted variable parallax inside moonAltitudeDegrees, the threshold is +0.133°
         val correctedMoonAltThreshold = 0.133
 
         var prevJd = jdStart
         var prevAlt = moonAltitudeAt(prevJd)
 
-        // FIX: Step by 0.5 hours (48 intervals) instead of 1 hour to capture shallow angles safely
+        // 48 steps of 0.5 hours captures fast moon velocity curves across shallow horizon lines perfectly
         val totalSteps = 48
         val stepSize = 0.5 / 24.0
 
@@ -233,12 +225,7 @@ object AstronomyService {
                 if (nextAlt > prevAlt) riseJd = riseJd ?: prevJd
                 else setJd = setJd ?: prevJd
             } else if (prevF * nextF < 0.0) {
-                val eventJd = refineAltitudeCrossing(
-                    prevJd,
-                    nextJd,
-                    correctedMoonAltThreshold,
-                    ::moonAltitudeAt
-                )
+                val eventJd = refineAltitudeCrossing(prevJd, nextJd, correctedMoonAltThreshold, ::moonAltitudeAt)
                 if (nextAlt > prevAlt) riseJd = riseJd ?: eventJd
                 else setJd = setJd ?: eventJd
             }
@@ -247,7 +234,6 @@ object AstronomyService {
             prevAlt = nextAlt
         }
 
-        // Fallback logic for clean data returns
         val resolvedRise = riseJd ?: (jdStart + 0.25)
         val resolvedSet = setJd ?: (jdStart + 0.75)
 
@@ -258,6 +244,7 @@ object AstronomyService {
         writeLru(moonriseMoonsetCache, cacheKey, result, MAX_RISE_SET_CACHE)
         return result
     }
+
     // ─── Moon Ecliptic Position (Meeus Table 47.A) ───────────────────────────
 
     private fun moonEclipticPosition(jd: Double): EclipticPosition {
@@ -269,27 +256,18 @@ object AstronomyService {
         val t3 = t2 * t
         val t4 = t3 * t
 
-        val lPrime =
-            normalizeAngle(218.3164477 + 481267.88123421 * t - 0.0015786 * t2 + t3 / 538841.0 - t4 / 65194000.0)
-        val d =
-            normalizeAngle(297.8501921 + 445267.1114034 * t - 0.0018819 * t2 + t3 / 545868.0 - t4 / 113065000.0)
+        val lPrime = normalizeAngle(218.3164477 + 481267.88123421 * t - 0.0015786 * t2 + t3 / 538841.0 - t4 / 65194000.0)
+        val d = normalizeAngle(297.8501921 + 445267.1114034 * t - 0.0018819 * t2 + t3 / 545868.0 - t4 / 113065000.0)
         val m = normalizeAngle(357.5291092 + 35999.0502909 * t - 0.0001536 * t2 + t3 / 24490000.0)
-        val mPrime =
-            normalizeAngle(134.9633964 + 477198.8675055 * t + 0.0087414 * t2 + t3 / 69699.0 - t4 / 14712000.0)
-        val f =
-            normalizeAngle(93.2720950 + 483202.0175233 * t - 0.0036539 * t2 - t3 / 3526000.0 + t4 / 863310000.0)
+        val mPrime = normalizeAngle(134.9633964 + 477198.8675055 * t + 0.0087414 * t2 + t3 / 69699.0 - t4 / 14712000.0)
+        val f = normalizeAngle(93.2720950 + 483202.0175233 * t - 0.0036539 * t2 - t3 / 3526000.0 + t4 / 863310000.0)
 
         val a1 = normalizeAngle(119.75 + 131.849 * t)
         val a2 = normalizeAngle(53.09 + 479264.290 * t)
         val a3 = normalizeAngle(313.45 + 481266.484 * t)
 
-        val dR = d * DEG2RAD
-        val mR = m * DEG2RAD
-        val mpR = mPrime * DEG2RAD
-        val fR = f * DEG2RAD
-        val a1R = a1 * DEG2RAD
-        val a2R = a2 * DEG2RAD
-        val a3R = a3 * DEG2RAD
+        val dR = d * DEG2RAD; val mR = m * DEG2RAD; val mpR = mPrime * DEG2RAD
+        val fR = f * DEG2RAD; val a1R = a1 * DEG2RAD; val a2R = a2 * DEG2RAD; val a3R = a3 * DEG2RAD
 
         val e = 1.0 - 0.002516 * t - 0.0000074 * t2
         val e2 = e * e
@@ -354,7 +332,6 @@ object AstronomyService {
         sigmaL += -323 * e2 * sin(2 * mR + mpR)
         sigmaL += 299 * e * sin(dR + mR - mpR)
         sigmaL += 294 * sin(2 * dR + 3 * mpR)
-        // Meeus additional corrections (eq. 47.b)
         sigmaL += 3958 * sin(a1R) + 1962 * sin(lPrime * DEG2RAD - fR) + 318 * sin(a2R)
 
         val lon = lPrime + sigmaL / 1_000_000.0
@@ -390,14 +367,24 @@ object AstronomyService {
         sigmaB += 1107 * sin(3 * mpR + fR)
         sigmaB += 1021 * sin(4 * dR - fR)
         sigmaB += 833 * sin(4 * dR - mpR + fR)
-        // Meeus additional latitude corrections
         sigmaB += -2235 * sin(lPrime * DEG2RAD) + 382 * sin(a3R) +
                 175 * sin(a1R - fR) + 175 * sin(a1R + fR) +
                 127 * sin(lPrime * DEG2RAD - mpR) - 115 * sin(lPrime * DEG2RAD + mpR)
 
         val lat = sigmaB / 1_000_000.0
 
-        val result = EclipticPosition(normalizeAngle(lon), lat)
+        // Calculate dynamic Moon distance term perturbations (Meeus Chapter 47 radial distance components)
+        var sigmaR = 0.0
+        sigmaR += -58499 * cos(mpR)
+        sigmaR += -46653 * cos(2 * dR - mpR)
+        sigmaR += -31057 * cos(2 * dR)
+        sigmaR += -11066 * cos(2 * mpR)
+        sigmaR += -8505 * e * cos(mR)
+
+        val horizontalParallaxArcSec = 3422.7000 + (sigmaR / 1000.0)
+        val distanceInEarthRadii = 1.0 / sin((horizontalParallaxArcSec / 3600.0) * DEG2RAD)
+
+        val result = EclipticPosition(normalizeAngle(lon), lat, distanceInEarthRadii)
         writeLru(moonEclipticPositionCache, key, result, MAX_JD_CACHE)
         return result
     }
@@ -411,60 +398,42 @@ object AstronomyService {
         val mAnom = geomMeanAnomalySun(t)
         val y = tan((epsilon * DEG2RAD) / 2.0)
         val y2 = y * y
-        val sin2l0 = sin(2.0 * l0 * DEG2RAD)
-        val sinm = sin(mAnom * DEG2RAD)
-        val cos2l0 = cos(2.0 * l0 * DEG2RAD)
-        val sin4l0 = sin(4.0 * l0 * DEG2RAD)
+        val sin2l0 = sin(2.0 * l0 * DEG2RAD); val sinm = sin(mAnom * DEG2RAD)
+        val cos2l0 = cos(2.0 * l0 * DEG2RAD); val sin4l0 = sin(4.0 * l0 * DEG2RAD)
         val sin2m = sin(2.0 * mAnom * DEG2RAD)
         val eTime = y2 * sin2l0 - 2.0 * ecc * sinm + 4.0 * ecc * y2 * sinm * cos2l0 -
                 0.5 * y2 * y2 * sin4l0 - 1.25 * ecc * ecc * sin2m
         return RAD2DEG * eTime * 4.0
     }
 
-    private fun geomMeanLongSun(t: Double) =
-        normalizeAngle(280.46646 + t * (36000.76983 + t * 0.0003032))
-
+    private fun geomMeanLongSun(t: Double) = normalizeAngle(280.46646 + t * (36000.76983 + t * 0.0003032))
     private fun geomMeanAnomalySun(t: Double) = 357.52911 + t * (35999.05029 - 0.0001537 * t)
-    private fun eccentricityEarthOrbit(t: Double) =
-        0.016708634 - t * (0.000042037 + 0.0000001267 * t)
-
+    private fun eccentricityEarthOrbit(t: Double) = 0.016708634 - t * (0.000042037 + 0.0000001267 * t)
     private fun sunEquationOfCenter(t: Double): Double {
         val mRad = geomMeanAnomalySun(t) * DEG2RAD
         return sin(mRad) * (1.914602 - t * (0.004817 + 0.000014 * t)) +
                 sin(2.0 * mRad) * (0.019993 - 0.000101 * t) +
                 sin(3.0 * mRad) * 0.000289
     }
-
     private fun sunApparentLongitude(t: Double): Double {
         val trueLon = geomMeanLongSun(t) + sunEquationOfCenter(t)
         return trueLon - 0.00569 - 0.00478 * sin((125.04 - 1934.136 * t) * DEG2RAD)
     }
-
     private fun meanObliquityOfEcliptic(t: Double): Double {
         val sec = 21.448 - t * (46.815 + t * (0.00059 - t * 0.001813))
         return 23.0 + (26.0 + sec / 60.0) / 60.0
     }
-
     private fun obliquityCorrection(t: Double) =
         meanObliquityOfEcliptic(t) + 0.00256 * cos((125.04 - 1934.136 * t) * DEG2RAD)
-
     private fun sunDeclination(t: Double): Double {
         val sinT = sin(obliquityCorrection(t) * DEG2RAD) * sin(sunApparentLongitude(t) * DEG2RAD)
         return asin(sinT) * RAD2DEG
     }
-
     private fun solarNoonUtcMinutes(jd: Double, lon: Double): Double {
         val tNoon = julianCenturies(jd - lon / 360.0)
         return (720.0 - 4.0 * lon - equationOfTime(tNoon)).coerceIn(0.0, 1440.0)
     }
-
-    private fun sunEventUtcMinutes(
-        jd: Double,
-        lat: Double,
-        lon: Double,
-        isSunrise: Boolean,
-        approxMins: Double
-    ): Double {
+    private fun sunEventUtcMinutes(jd: Double, lat: Double, lon: Double, isSunrise: Boolean, approxMins: Double): Double {
         var approx = approxMins
         var t = julianCenturies(jd + approx / 1440.0)
         repeat(2) {
@@ -478,13 +447,11 @@ object AstronomyService {
         }
         return approx
     }
-
     private fun hourAngleSunrise(lat: Double, solarDec: Double): Double {
         val haArg = (cos(90.833 * DEG2RAD) - sin(lat * DEG2RAD) * sin(solarDec * DEG2RAD)) /
                 (cos(lat * DEG2RAD) * cos(solarDec * DEG2RAD))
         return acos(haArg.coerceIn(-1.0, 1.0)) * RAD2DEG
     }
-
     private fun normalizeDayMinutes(minutes: Double): Double {
         var n = minutes % 1440.0
         if (n < 0) n += 1440.0
@@ -495,8 +462,7 @@ object AstronomyService {
 
     private fun eclipticToEquatorial(lon: Double, lat: Double, jd: Double): EquatorialPosition {
         val epsilon = obliquityCorrection(julianCenturies(jd)) * DEG2RAD
-        val lonR = lon * DEG2RAD
-        val latR = lat * DEG2RAD
+        val lonR = lon * DEG2RAD; val latR = lat * DEG2RAD
         val ra = atan2(sin(lonR) * cos(epsilon) - tan(latR) * sin(epsilon), cos(lonR))
         val dec = asin(sin(latR) * cos(epsilon) + cos(latR) * sin(epsilon) * sin(lonR))
         return EquatorialPosition(normalizeAngle(ra * RAD2DEG), dec * RAD2DEG)
@@ -513,14 +479,27 @@ object AstronomyService {
         val sunEq = eclipticToEquatorial(sunLongitude(jd), 0.0, jd)
         val lst = normalizeAngle(greenwichMeanSiderealTime(jd) + lon)
         val ha = normalizeSignedAngle(lst - sunEq.rightAscensionDeg) * DEG2RAD
-        val alt = asin(
-            sin(lat * DEG2RAD) * sin(sunEq.declinationDeg * DEG2RAD) +
-                    cos(lat * DEG2RAD) * cos(sunEq.declinationDeg * DEG2RAD) * cos(ha)
-        )
+        val alt = asin(sin(lat * DEG2RAD) * sin(sunEq.declinationDeg * DEG2RAD) +
+                cos(lat * DEG2RAD) * cos(sunEq.declinationDeg * DEG2RAD) * cos(ha))
         return alt * RAD2DEG
     }
 
-    
+    private fun moonAltitudeDegrees(jd: Double, lat: Double, lon: Double): Double {
+        val moonPos = moonEclipticPosition(jd)
+        val moonEq = eclipticToEquatorial(moonPos.longitude, moonPos.latitude, jd)
+        val lst = normalizeAngle(greenwichMeanSiderealTime(jd) + lon)
+        val ha = normalizeSignedAngle(lst - moonEq.rightAscensionDeg) * DEG2RAD
+
+        val geoAltRad = asin(sin(lat * DEG2RAD) * sin(moonEq.declinationDeg * DEG2RAD) +
+                cos(lat * DEG2RAD) * cos(moonEq.declinationDeg * DEG2RAD) * cos(ha))
+
+        // Dynamically compute Topocentric Parallax from real-time Earth distance factor (Meeus Chapter 40)
+        val dynamicParallaxRad = asin(1.0 / moonPos.distanceEarthRadii)
+        val parallaxCorrection = dynamicParallaxRad * cos(geoAltRad)
+
+        val topoAltRad = geoAltRad - parallaxCorrection
+        return topoAltRad * RAD2DEG
+    }
 
     // ─── Bisection refinement ─────────────────────────────────────────────────
 
@@ -528,17 +507,14 @@ object AstronomyService {
         jdLow: Double, jdHigh: Double, targetAlt: Double,
         altitudeAtJd: (Double) -> Double
     ): Double {
-        var low = jdLow
-        var high = jdHigh
+        var low = jdLow; var high = jdHigh
         var lowDiff = altitudeAtJd(low) - targetAlt
         repeat(24) {
             val mid = (low + high) / 2.0
             val midDiff = altitudeAtJd(mid) - targetAlt
             if (lowDiff == 0.0) return low
             if (lowDiff * midDiff <= 0.0) high = mid
-            else {
-                low = mid; lowDiff = midDiff
-            }
+            else { low = mid; lowDiff = midDiff }
         }
         return (low + high) / 2.0
     }
@@ -570,7 +546,7 @@ object AstronomyService {
     }
 
     private fun instantFromDayAndMinutes(date: LocalDate, minutes: Double): Instant {
-        val startMs = julianDay(date.year, date.month.ordinal + 1, date.day, 0.0)
+        val startMs = julianDay(date.year, date.month.number, date.day, 0.0)
             .let { jdToInstant(it).toEpochMilliseconds() }
         return Instant.fromEpochMilliseconds(startMs + (minutes * 60_000.0).toLong())
     }
@@ -578,11 +554,7 @@ object AstronomyService {
     private fun jdKey(jd: Double): String = jd.toString()
 
     private fun riseSetCacheKey(date: LocalDate, lat: Double, lon: Double): String =
-        "${date.year}-${date.month.ordinal + 1}-${date.day}|${"%.8f".format(lat)}|${
-            "%.8f".format(
-                lon
-            )
-        }"
+        "${date.year}-${date.month.number}-${date.day}|${"%.8f".format(lat)}|${"%.8f".format(lon)}"
 
     private fun <K, V> readLru(cache: LinkedHashMap<K, V>, key: K): V? {
         val value = cache.remove(key) ?: return null
