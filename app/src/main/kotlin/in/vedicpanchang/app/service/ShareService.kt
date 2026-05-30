@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.l10n.PanchangLocalizer
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
 /**
@@ -26,7 +28,8 @@ object ShareService {
 
     fun formatPanchang(panchang: PanchangModel, localizer: PanchangLocalizer, locale: String): String {
         val tz = TimeZone.currentSystemDefault()
-        val dateStr = formatDate(panchang.date.year, panchang.date.monthNumber, panchang.date.dayOfMonth, locale)
+        val dateStr = formatDate(panchang.date.year,
+            panchang.date.month.number, panchang.date.day, locale)
 
         val rahuStart = panchang.rahuKaal.start.toLocalDateTime(tz)
         val rahuEnd = panchang.rahuKaal.end.toLocalDateTime(tz)
@@ -84,7 +87,7 @@ object ShareService {
 
     private fun formatDate(year: Int, month: Int, day: Int, locale: String): String {
         val javaLocale = when (locale) {
-            "hi", "sa" -> java.util.Locale("hi", "IN")
+            "hi", "sa" -> java.util.Locale.forLanguageTag("hi-IN")
             else -> java.util.Locale.ENGLISH
         }
         val cal = java.util.Calendar.getInstance().apply { set(year, month - 1, day) }

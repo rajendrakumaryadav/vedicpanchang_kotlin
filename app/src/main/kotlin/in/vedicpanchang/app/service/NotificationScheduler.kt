@@ -7,6 +7,7 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
+import kotlinx.datetime.number
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
@@ -127,12 +128,12 @@ class NotificationScheduler @Inject constructor(
 
     private fun dateLabel(date: LocalDate, locale: String): String {
         val javaLocale = when (locale) {
-            "hi", "sa" -> Locale("hi", "IN")
+            "hi", "sa" -> Locale.forLanguageTag("hi-IN")
             else -> Locale.ENGLISH
         }
         val fmt = SimpleDateFormat("d MMMM, EEEE", javaLocale)
         val cal = java.util.Calendar.getInstance().apply {
-            set(date.year, date.monthNumber - 1, date.dayOfMonth)
+            set(date.year, date.month.number - 1, date.day)
         }
         return fmt.format(cal.time)
     }

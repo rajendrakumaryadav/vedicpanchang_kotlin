@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.vedicpanchang.app.R
@@ -39,6 +40,7 @@ class NotificationService @Inject constructor(
         createChannel()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createChannel() {
         val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH).apply {
             description = CHANNEL_DESC
@@ -61,6 +63,7 @@ class NotificationService @Inject constructor(
      * Uses AlarmManager.setAlarmClock when exact alarms are permitted,
      * falls back to setAndAllowWhileIdle.
      */
+    @RequiresApi(Build.VERSION_CODES.M)
     fun schedule(id: Int, title: String, body: String, triggerAtMs: Long): Boolean {
         if (triggerAtMs <= System.currentTimeMillis()) return false
 

@@ -93,7 +93,7 @@ class WidgetService @Inject constructor(
     private fun fmtDate(year: Int, month: Int, day: Int, locale: String): String {
         val cal = java.util.Calendar.getInstance().apply { set(year, month - 1, day) }
         val javaLocale = when (locale) {
-            "hi" -> java.util.Locale("hi", "IN")
+            "hi" -> java.util.Locale.forLanguageTag("hi-IN")
             else -> java.util.Locale.ENGLISH
         }
         val sdf = java.text.SimpleDateFormat("EEEE, d MMM", javaLocale)
