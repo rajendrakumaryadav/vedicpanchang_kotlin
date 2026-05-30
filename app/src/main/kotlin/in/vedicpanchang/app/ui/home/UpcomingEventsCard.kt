@@ -49,7 +49,7 @@ fun UpcomingEventsCard(
         for (i in 0..30) {
             val date = today.plus(i, DateTimeUnit.DAY)
             val p = panchangVm.getPanchangForDate(date, location)
-            if (p != null && p.festivals.isNotEmpty()) {
+            if (p != null && (p.festivals.isNotEmpty() || p.hasEclipse)) {
                 results.add(i to p)
                 if (results.size >= 8) break
             }
@@ -157,9 +157,16 @@ fun EventCard(
 
             Spacer(Modifier.height(10.dp))
 
-            // Festival name
+            // Festival / eclipse name
+            val eventLabel = if (panchang.festivals.isNotEmpty()) {
+                panchang.festivals.joinToString("\n") { localizer.festivalName(it) }
+            } else if (panchang.lunarEclipse) {
+                strings["lunar_eclipse"] ?: "Lunar Eclipse"
+            } else {
+                strings["solar_eclipse"] ?: "Solar Eclipse"
+            }
             Text(
-                text = panchang.festivals.joinToString("\n") { localizer.festivalName(it) },
+                text = eventLabel,
                 style = AppTextStyles.bodyMedium.copy(
                     color = primaryTextColor,
                     fontWeight = FontWeight.Bold,

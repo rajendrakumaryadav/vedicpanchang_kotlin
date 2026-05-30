@@ -62,9 +62,12 @@ class WidgetService @Inject constructor(
                                                      panchang.date.day,
                                                      locale))
                 putString("widget_location", panchang.locationName)
-                putString("widget_festival",
-                    if (panchang.hasFestivals)
-                        localizer.festivalName(panchang.primaryFestival ?: "") else "")
+                putString("widget_festival", when {
+                    panchang.hasFestivals -> localizer.festivalName(panchang.primaryFestival!!)
+                    panchang.lunarEclipse -> strings["lunar_eclipse"] ?: "Lunar Eclipse"
+                    panchang.solarEclipse -> strings["solar_eclipse"] ?: "Solar Eclipse"
+                    else -> ""
+                })
 
                 // ── Localized UI labels ───────────────────────────────────────
                 putString("widget_lbl_tithi",     strings["tithi"]     ?: "Tithi")

@@ -128,6 +128,12 @@ object AstronomyService {
 
     fun moonLatitude(jd: Double): Double = moonEclipticPosition(jd).latitude
 
+    /** Topocentric altitude of the moon in degrees (positive = above horizon). */
+    fun moonAltitude(jd: Double, lat: Double, lon: Double): Double = moonAltitudeDegrees(jd, lat, lon)
+
+    /** Altitude of the sun's centre in degrees (positive = above horizon). */
+    fun sunAltitude(jd: Double, lat: Double, lon: Double): Double = sunAltitudeDegrees(jd, lat, lon)
+
     // ─── Sunrise / Sunset ────────────────────────────────────────────────────
 
     fun sunriseSunset(date: LocalDate, lat: Double, lon: Double): SunriseSunset {
