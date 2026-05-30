@@ -22,19 +22,23 @@ object EclipseCalculator {
 
     /**
      * Returns true if a lunar eclipse is possible at the given Julian Day.
-     * Requires the tithi to be Purnima (index 14).
+     * Accepts tithiIndex within ±1 of Purnima (14) to tolerate the limbTime observation
+     * moment being offset from the actual opposition — e.g. when Purnima ends just before
+     * sunrise, the limb falls in Krishna Pratipada (15) instead.
      */
     fun isLunarEclipse(jd: Double, tithiIndex: Int): Boolean {
-        if (tithiIndex != PURNIMA_INDEX) return false
+        if (tithiIndex !in (PURNIMA_INDEX - 1)..(PURNIMA_INDEX + 1)) return false
         return abs(AstronomyService.moonLatitude(jd)) < LUNAR_ECLIPSE_LAT_LIMIT
     }
 
     /**
      * Returns true if a solar eclipse is possible at the given Julian Day.
-     * Requires the tithi to be Amavasya (index 29).
+     * Accepts tithiIndex within ±1 of Amavasya (29), including wrap-around to 0
+     * (Shukla Pratipada) when Amavasya ends before the limbTime observation moment.
      */
     fun isSolarEclipse(jd: Double, tithiIndex: Int): Boolean {
-        if (tithiIndex != AMAVASYA_INDEX) return false
+        val nearAmavasya = tithiIndex in (AMAVASYA_INDEX - 1)..AMAVASYA_INDEX || tithiIndex == 0
+        if (!nearAmavasya) return false
         return abs(AstronomyService.moonLatitude(jd)) < SOLAR_ECLIPSE_LAT_LIMIT
     }
 }

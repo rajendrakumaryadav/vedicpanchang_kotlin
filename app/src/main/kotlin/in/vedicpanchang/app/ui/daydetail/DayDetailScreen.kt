@@ -33,6 +33,7 @@ import androidx.navigation.NavController
 import `in`.vedicpanchang.app.data.model.PanchangModel
 import `in`.vedicpanchang.app.l10n.PanchangLocalizer
 import `in`.vedicpanchang.app.ui.home.DishasoolCard
+import `in`.vedicpanchang.app.ui.home.EclipseAlertCard
 import `in`.vedicpanchang.app.ui.home.SunMoonCard
 import `in`.vedicpanchang.app.ui.home.TodayPanchangCard
 import `in`.vedicpanchang.app.ui.navigation.AppBottomNav
@@ -157,6 +158,10 @@ fun DayDetailScreen(
                 // 1. Festival & Events Banner
                 if (p.hasFestivals) {
                     item { FestivalBannerCard(panchang = p, strings = strings, localizer = localizer) }
+                }
+                // 1b. Eclipse alert (distinct from festivals)
+                if (p.hasEclipse) {
+                    item { EclipseAlertCard(panchang = p, strings = strings) }
                 }
                 // 2. Vedic Calendar Section
                 item { VedicCalendarSection(panchang = p, strings = strings, localizer = localizer) }

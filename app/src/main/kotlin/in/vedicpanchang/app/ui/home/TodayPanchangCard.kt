@@ -84,7 +84,7 @@ fun TodayPanchangCard(
                                 strings["solar_eclipse"] ?: "Solar Eclipse"
                         )
                     }
-                    if (panchang.hasFestivals && !panchang.hasEclipse) {
+                    if (panchang.hasFestivals) {
                         FestivalBadge(name = localizer.festivalName(panchang.primaryFestival!!))
                     }
                 }

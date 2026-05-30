@@ -133,6 +133,7 @@ fun CalendarScreen(
     var focusedYear by remember { mutableIntStateOf(today.year) }
     var viewMode by remember { mutableStateOf(CalendarViewMode.MONTH) }
     var festivalsByDay by remember { mutableStateOf<Map<LocalDate, List<String>>>(emptyMap()) }
+    var eclipsesByDay  by remember { mutableStateOf<Map<LocalDate, Boolean>>(emptyMap()) }
 
     val notesByDay = (notesState as? NotesUiState.Success)?.notesByDay ?: emptyMap()
 
@@ -159,13 +160,16 @@ fun CalendarScreen(
             }
         }
         val result = mutableMapOf<LocalDate, List<String>>()
+        val eclipseResult = mutableMapOf<LocalDate, Boolean>()
         dates.forEach { date ->
             val p = panchangVm.getPanchangForDate(date, location)
-            if (p != null && p.festivals.isNotEmpty()) {
-                result[date] = p.festivals
+            if (p != null) {
+                if (p.festivals.isNotEmpty()) result[date] = p.festivals
+                if (p.hasEclipse) eclipseResult[date] = true
             }
         }
         festivalsByDay = result
+        eclipsesByDay  = eclipseResult
     }
 
     Scaffold(
@@ -250,6 +254,7 @@ fun CalendarScreen(
                 today = today,
                 notesByDay = notesByDay,
                 festivalsByDay = festivalsByDay,
+                eclipsesByDay = eclipsesByDay,
                 viewMode = viewMode,
                 onDaySelected = { date ->
                     calendarVm.selectDate(date)
@@ -393,6 +398,7 @@ private fun MonthCalendarGrid(
     year: Int, month: Month, selectedDate: LocalDate, today: LocalDate,
     notesByDay: Map<LocalDate, List<CustomCalendarNote>>,
     festivalsByDay: Map<LocalDate, List<String>>,
+    eclipsesByDay: Map<LocalDate, Boolean>,
     viewMode: CalendarViewMode,
     onDaySelected: (LocalDate) -> Unit,
     onSwipeLeft: () -> Unit,
@@ -406,6 +412,7 @@ private fun MonthCalendarGrid(
     fun DayCell(date: LocalDate, col: Int, modifier: Modifier = Modifier) {
         val isSelected = date == selectedDate
         val isToday = date == today
+        val hasEclipse = eclipsesByDay[date] == true
         val hasFestival = festivalsByDay[date]?.isNotEmpty() == true
         val hasNote = notesByDay[date] != null
 
@@ -452,8 +459,14 @@ private fun MonthCalendarGrid(
                         }
                     )
                 )
-                if (hasFestival || hasNote) {
+                if (hasEclipse || hasFestival || hasNote) {
                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        if (hasEclipse) Box(
+                            Modifier
+                                .size(5.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF212121))
+                        )
                         if (hasFestival) Box(
                             Modifier
                                 .size(4.dp)
@@ -639,7 +652,6 @@ private fun DaySummaryPanel(
             null
         )
     }
-    val state by panchangVm.state.collectAsStateWithLifecycle()
     val panchangState by panchangVm.state.collectAsStateWithLifecycle()
     val location = (panchangState.location as? LocationUiState.Success)?.location
     LaunchedEffect(selectedDate, location) {

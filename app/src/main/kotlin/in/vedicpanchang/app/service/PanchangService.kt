@@ -2,6 +2,7 @@ package `in`.vedicpanchang.app.service
 
 import `in`.vedicpanchang.app.data.datasource.FestivalData
 import `in`.vedicpanchang.app.data.model.PanchangModel
+import `in`.vedicpanchang.app.l10n.AppStrings
 import `in`.vedicpanchang.astronomy.*
 import kotlinx.datetime.*
 import kotlinx.datetime.LocalDate
@@ -141,20 +142,16 @@ class PanchangService @Inject constructor() {
             !sankrantiFound
         }
         val adhikmashName: String? = if (isAdhikmash) {
-            val vedMonths = listOf(
-                "Chaitra", "Vaishakha", "Jyeshtha", "Ashadha", "Shravana",
-                "Bhadrapada", "Ashwin", "Kartik", "Margashirsha", "Pausha", "Magha", "Phalguna"
-            )
+            // Use AppStrings as single source of truth for Vedic month names (English)
+            val vedMonths = AppStrings.VEDIC_MONTHS["en"]!!
             "Adhik ${vedMonths[lunarMonthIdx]}"
         } else null
 
-        // 14. Eclipse detection
+        // 14. Eclipse detection — stored in dedicated boolean fields only.
+        // Do NOT inject eclipse strings into the festivals list; that contaminates
+        // every consumer of hasFestivals / primaryFestival (widget, notifications, etc.).
         val lunarEclipse = EclipseCalculator.isLunarEclipse(jd, tithiIdx)
         val solarEclipse = EclipseCalculator.isSolarEclipse(jd, tithiIdx)
-        val festivalsWithEclipse = festivals.toMutableList().also { list ->
-            if (lunarEclipse) list.add(0, "Lunar Eclipse")
-            if (solarEclipse) list.add(0, "Solar Eclipse")
-        }
 
         val model = PanchangModel(
             date = date, latitude = lat, longitude = lon, locationName = locationName,
@@ -173,7 +170,7 @@ class PanchangService @Inject constructor() {
             brahmaMuhurta = brahma, abhijitMuhurta = abhijit,
             auspiciousMuhurtas = auspiciousMuhurtas, daytimeMuhurtas = daytimeMuhurtas,
             rahuKaal = rahu, yamaganda = yama, gulikaKaal = gulika,
-            festivals = festivalsWithEclipse,
+            festivals = festivals,
             sunLongitude = sunLon, moonLongitude = moonLon,
             lunarMonthIndex = lunarMonthIdx,
             isAdhikmash = isAdhikmash,
