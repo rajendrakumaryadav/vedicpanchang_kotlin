@@ -758,6 +758,14 @@ private fun PanchangSummaryRows(
                     style = AppTextStyles.bodySmall.copy(color = AppColors.Primary)
                 )
             }
+            if (p.hasEclipse) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "🌑 ${if (p.lunarEclipse) strings["lunar_eclipse"] ?: "Lunar Eclipse"
+                          else strings["solar_eclipse"] ?: "Solar Eclipse"}",
+                    style = AppTextStyles.bodySmall.copy(color = Color(0xFFFFD54F))
+                )
+            }
         }
     }
 }
