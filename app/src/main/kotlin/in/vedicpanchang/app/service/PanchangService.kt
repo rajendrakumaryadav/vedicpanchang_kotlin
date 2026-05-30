@@ -150,8 +150,8 @@ class PanchangService @Inject constructor() {
         // 14. Eclipse detection — stored in dedicated boolean fields only.
         // Do NOT inject eclipse strings into the festivals list; that contaminates
         // every consumer of hasFestivals / primaryFestival (widget, notifications, etc.).
-        val lunarEclipse = EclipseCalculator.isLunarEclipse(jd, tithiIdx)
-        val solarEclipse = EclipseCalculator.isSolarEclipse(jd, tithiIdx)
+        val lunarEclipse = EclipseCalculator.isLunarEclipse(jd, tithiIdx, lat, lon, date)
+        val solarEclipse = EclipseCalculator.isSolarEclipse(jd, tithiIdx, lat, lon, date)
 
         val model = PanchangModel(
             date = date, latitude = lat, longitude = lon, locationName = locationName,
