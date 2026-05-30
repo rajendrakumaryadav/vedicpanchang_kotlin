@@ -1,5 +1,7 @@
 package `in`.vedicpanchang.app.viewmodel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -102,6 +104,7 @@ class CalendarViewModel @Inject constructor(
 
     // ── Note CRUD ─────────────────────────────────────────────────────────────
 
+    @RequiresApi(Build.VERSION_CODES.M)
     fun addNote(
         date: LocalDate,
         title: String,

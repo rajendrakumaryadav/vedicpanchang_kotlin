@@ -39,7 +39,7 @@ data class LocationData(
  */
 @Singleton
 class LocationService @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val preferences: AppPreferences
 ) {
     private val fusedClient = LocationServices.getFusedLocationProviderClient(context)
