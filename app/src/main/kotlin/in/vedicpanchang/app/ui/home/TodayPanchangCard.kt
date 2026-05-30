@@ -154,7 +154,12 @@ fun TodayPanchangCard(
             ) {
                 Text("📅", fontSize = 16.sp)
                 Spacer(Modifier.width(8.dp))
-                Text("${strings["vaar"] ?: "Vaar"}: ", style = AppTextStyles.bodySmall)
+                Text(
+                    "${strings["vaar"] ?: "Vaar"}: ",
+                    style = AppTextStyles.bodySmall.copy(
+                        color = if (isDark) AppColors.TextSecondary else AppColors.TextSecondaryLight
+                    )
+                )
                 Text(
                     localizer.vaarName(panchang),
                     style = AppTextStyles.labelLarge.copy(
@@ -172,7 +177,9 @@ fun TodayPanchangCard(
                                 panchang.date.month.number - 1, panchang.date.day)
                         }.time
                     )),
-                    style = AppTextStyles.timeSmall
+                    style = AppTextStyles.timeSmall.copy(
+                        color = if (isDark) AppColors.TextSecondary else Color(0xFF4E4238)
+                    )
                 )
             }
         }

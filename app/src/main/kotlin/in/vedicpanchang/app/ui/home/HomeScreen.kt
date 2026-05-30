@@ -90,22 +90,17 @@ fun HomeScreen(
         bottomBar = {
             AppBottomNav(navController = navController, strings = strings)
         },
-        containerColor = colors.background
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    backgroundBrush
-                )
-        ) {
+        // Full-screen gradient — draws behind system bars for visual continuity
+        Box(modifier = Modifier.fillMaxSize().background(backgroundBrush))
+
+        // Content area — bounded by scaffold padding so nothing renders behind nav bars
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    top = padding.calculateTopPadding(),
-                    bottom = padding.calculateBottomPadding() + 16.dp
-                )
+                contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 // Header: Icons | Location | Title (expanded)
                 item {
@@ -219,8 +214,7 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colors.background)
-                    .statusBarsPadding()
+                    .background(if (isDark) AppColors.Card else colors.background)
                     .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
             ) {
                 Row(
@@ -233,10 +227,10 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = onShare) {
-                        Icon(Icons.Outlined.Share, contentDescription = null, tint = colors.onBackground)
+                        Icon(Icons.Outlined.Share, contentDescription = null, tint = AppColors.Primary)
                     }
                     IconButton(onClick = onSettings) {
-                        Icon(Icons.Outlined.Settings, contentDescription = null, tint = colors.onBackground)
+                        Icon(Icons.Outlined.Settings, contentDescription = null, tint = AppColors.Primary)
                     }
                 }
             }
@@ -257,7 +251,7 @@ fun HomeHeader(
 ) {
     val colors = MaterialTheme.colorScheme
     val secondaryText = colors.onSurfaceVariant
-    val iconTint = colors.onBackground
+    val iconTint = AppColors.Primary
     Column(
         modifier = Modifier
             .fillMaxWidth()

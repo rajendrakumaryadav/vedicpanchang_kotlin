@@ -149,7 +149,11 @@ private fun HoraRow(
             )
             Text(
                 text = if (slot != null) localizer.planetName(slot.planet) else "—",
-                style = AppTextStyles.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
+                style = AppTextStyles.bodySmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
+                ),
                 maxLines = 1
             )
         }

@@ -366,7 +366,8 @@ fun SectionHeader(title: String) {
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardBorderColor =
+        if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
     val cardShape = RoundedCornerShape(16.dp)
     Column(
         modifier = Modifier

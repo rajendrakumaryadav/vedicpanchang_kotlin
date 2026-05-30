@@ -2,18 +2,27 @@ package `in`.vedicpanchang.app.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,10 +33,10 @@ import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import `in`.vedicpanchang.astronomy.ChoghadiyaCalculator
 import `in`.vedicpanchang.astronomy.ChoghadiyaSlot
 import `in`.vedicpanchang.astronomy.ChoghadiyaType
-import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 @Composable
 fun ChoghadiyaCard(
@@ -38,7 +47,8 @@ fun ChoghadiyaCard(
 ) {
     val colors = MaterialTheme.colorScheme
     val isDark = colors.background.luminance() < 0.5f
-    val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
+    val cardBorderColor =
+        if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
     val cardShape = RoundedCornerShape(20.dp)
     val now = Clock.System.now()
     val weekday = panchang.date.dayOfWeek.isoDayNumber
@@ -137,10 +147,10 @@ private fun ChoghadiyaSlotCompact(
     val colors = MaterialTheme.colorScheme
     val typeColor = when (slot.type) {
         ChoghadiyaType.VERY_AUSPICIOUS -> Color(0xFF4CAF50)
-        ChoghadiyaType.AUSPICIOUS      -> Color(0xFF81C784)
-        ChoghadiyaType.GOOD            -> Color(0xFF64B5F6)
-        ChoghadiyaType.NEUTRAL         -> Color(0xFFFFB300)
-        ChoghadiyaType.INAUSPICIOUS    -> Color(0xFFE53935)
+        ChoghadiyaType.AUSPICIOUS -> Color(0xFF81C784)
+        ChoghadiyaType.GOOD -> Color(0xFF64B5F6)
+        ChoghadiyaType.NEUTRAL -> Color(0xFFFFB300)
+        ChoghadiyaType.INAUSPICIOUS -> Color(0xFFE53935)
     }
 
     val highlightShape = RoundedCornerShape(8.dp)

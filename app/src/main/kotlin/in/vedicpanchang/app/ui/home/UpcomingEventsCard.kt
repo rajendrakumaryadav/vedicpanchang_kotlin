@@ -59,10 +59,15 @@ fun UpcomingEventsCard(
 
     if (upcomingEvents.isEmpty()) return
 
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = strings["upcoming_events"] ?: "Upcoming Events",
-            style = AppTextStyles.displaySmall.copy(fontSize = 18.sp),
+            style = AppTextStyles.displaySmall.copy(
+                fontSize = 18.sp,
+                color = if (isDark) AppColors.TextPrimary else AppColors.TextPrimaryLight
+            ),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 

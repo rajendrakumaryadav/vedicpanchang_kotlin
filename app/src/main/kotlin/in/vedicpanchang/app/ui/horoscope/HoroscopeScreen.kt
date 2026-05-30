@@ -3,6 +3,7 @@ package `in`.vedicpanchang.app.ui.horoscope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -107,7 +108,10 @@ fun HoroscopeScreen(
         bottomBar = { AppBottomNav(navController = navController, strings = strings) }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .consumeWindowInsets(padding),
             contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding() + 16.dp)
         ) {
             // Intro banner
