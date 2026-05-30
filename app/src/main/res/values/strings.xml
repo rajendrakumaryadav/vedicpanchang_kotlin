@@ -34,6 +34,74 @@
     <string name="rahu_kaal">Rahu Kaal</string>
     <string name="full_details">Full Details →</string>
 
+    <!-- Sun & Moon -->
+    <string name="sun_moon">Sun &amp; Moon</string>
+    <string name="moonrise">Moonrise</string>
+    <string name="moonset">Moonset</string>
+    <string name="sun_short">Sun</string>
+    <string name="moon_short">Moon</string>
+    <string name="hour_short">hr</string>
+    <string name="minute_short">min</string>
+    <string name="time_left">Left</string>
+    <string name="time_to_rise">To Rise</string>
+    <string name="sun_longitude">Sun Longitude</string>
+    <string name="moon_longitude">Moon Longitude</string>
+
+    <!-- Tithi & Paksha -->
+    <string name="day_tithi">Day Tithi</string>
+    <string name="actual_tithi">Current Tithi</string>
+    <string name="vaar">Vaar</string>
+    <string name="paksha">Paksha</string>
+    <string name="shukla">Shukla</string>
+    <string name="krishna">Krishna</string>
+    <string name="auspicious">Auspicious</string>
+    <string name="inauspicious">Inauspicious</string>
+    <string name="until">Until</string>
+
+    <!-- Muhurtas -->
+    <string name="brahma_muhurta">Brahma Muhurta</string>
+    <string name="abhijit_muhurta">Abhijit Muhurta</string>
+    <string name="vijaya_muhurta">Vijaya Muhurta</string>
+    <string name="godhuli_muhurta">Godhuli Muhurta</string>
+    <string name="day_muhurtas">Day Muhurtas</string>
+    <string name="rudra_muhurta">Rudra Muhurta</string>
+    <string name="ahi_muhurta">Ahi Muhurta</string>
+    <string name="mitra_muhurta">Mitra Muhurta</string>
+    <string name="pitru_muhurta">Pitru Muhurta</string>
+    <string name="vasu_muhurta">Vasu Muhurta</string>
+    <string name="varaha_muhurta">Varaha Muhurta</string>
+    <string name="vishwadeva_muhurta">Vishwadeva Muhurta</string>
+    <string name="vidhi_muhurta">Vidhi Muhurta</string>
+    <string name="satamukhi_muhurta">Shatamukhi Muhurta</string>
+    <string name="puruhuta_muhurta">Puruhuta Muhurta</string>
+    <string name="vahni_muhurta">Vahni Muhurta</string>
+    <string name="naktanchara_muhurta">Naktanchara Muhurta</string>
+    <string name="varuna_muhurta">Varuna Muhurta</string>
+    <string name="aryama_muhurta">Aryama Muhurta</string>
+    <string name="bhaga_muhurta">Bhaga Muhurta</string>
+    <string name="auspicious_periods">Auspicious Periods</string>
+    <string name="inauspicious_periods">Inauspicious Periods</string>
+    <string name="best_meditation">Best for Meditation &amp; Prayer</string>
+    <string name="best_beginnings">Best for New Beginnings</string>
+    <string name="vijaya_note">Auspicious for victory and success</string>
+    <string name="godhuli_note">Auspicious twilight period near sunset</string>
+    <string name="day_muhurta_note">Day muhurta segment</string>
+    <string name="avoid_auspicious">Avoid auspicious activities</string>
+    <string name="period_yama">Yama Period — Inauspicious</string>
+    <string name="saturn_period">Saturn\'s inauspicious period</string>
+    <string name="yamaganda">Yamaganda</string>
+    <string name="gulika_kaal">Gulika Kaal</string>
+
+    <!-- Calendar -->
+    <string name="go_to_today">Go to Today</string>
+    <string name="vedic_calendar">Vedic Calendar</string>
+    <string name="vedic_month">Vedic Month</string>
+    <string name="vikram_samvat">Vikram Samvat</string>
+    <string name="shaka_samvat">Shaka Samvat</string>
+    <string name="vedic_date">Vedic Date</string>
+    <string name="days_away">days away</string>
+    <string name="kali_yuga_year">Kali Yuga Year</string>
+
     <!-- Notes -->
     <string name="my_notes">My Notes</string>
     <string name="add_note">Add Note</string>
@@ -45,4 +113,114 @@
     <string name="save_note">Save Note</string>
     <string name="delete_note">Delete Note</string>
     <string name="no_notes_for_day">No custom notes for this day</string>
+    <string name="custom_note_notification_body">Reminder for your calendar note</string>
+    <string name="note_saved_without_notification">Event saved, but notification is off or unavailable.</string>
+    <string name="note_save_failed">Could not save note. Please try again.</string>
+    <string name="note_delete_failed">Could not delete note. Please try again.</string>
+
+    <!-- Festivals & Events -->
+    <string name="festivals_events">🪔 Festivals &amp; Events</string>
+    <string name="ekadashi">Ekadashi</string>
+    <string name="purnima_label">Purnima</string>
+    <string name="amavasya_label">Amavasya</string>
+    <string name="major_festivals">Major Festivals</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="notifications">Notifications</string>
+    <string name="reminder_timing">Reminder Timing</string>
+    <string name="app_info">App Info</string>
+    <string name="version">Version</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="calculation_method">Calculation Method</string>
+    <string name="calc_description">Jean Meeus astronomical algorithms + Vedic corrections</string>
+    <string name="language">Language</string>
+    <string name="select_language">Select Language</string>
+    <string name="location">Location</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="loading_error">Error loading Panchang</string>
+    <string name="location_error">Location Error</string>
+
+    <!-- Notifications -->
+    <string name="notify_ekadashi">Ekadashi fast notification</string>
+    <string name="notify_purnima">Purnima notification</string>
+    <string name="notify_amavasya">Amavasya notification</string>
+    <string name="notify_festivals">Deepawali, Holi, Navratri etc.</string>
+    <string name="days_3_before">3 days before</string>
+    <string name="days_1_before">1 day before</string>
+    <string name="on_the_day">On the day</string>
+    <string name="remind_3_days">Notify 3 days before at 9:00 AM</string>
+    <string name="remind_1_day">Notify 1 day before at 8:00 AM</string>
+    <string name="remind_same_day">Notify on the day at 6:00 AM</string>
+    <string name="test_notification">Test Notification</string>
+    <string name="send_test_notification">Send test notification in 10 seconds</string>
+    <string name="test_notification_scheduled">Test notification has been scheduled</string>
+    <string name="test_notification_failed">Could not schedule test notification. Please check permissions.</string>
+
+    <!-- Help -->
+    <string name="help">Help</string>
+    <string name="help_subtitle">Understand parameters and calculations</string>
+    <string name="help_meaning">Meaning</string>
+    <string name="help_calculation">Calculation</string>
+    <string name="help_live_metrics">Live Astronomical Values</string>
+    <string name="help_as_of">As of</string>
+    <string name="julian_day">Julian Day</string>
+    <string name="astronomical_data">Astronomical Data</string>
+
+    <!-- Kundali / Birth Chart -->
+    <string name="birth_details">Birth Details</string>
+    <string name="date_of_birth">Date of Birth</string>
+    <string name="time_of_birth">Time of Birth</string>
+    <string name="place_of_birth">Place of Birth</string>
+    <string name="use_current_location">Use Current Location</string>
+    <string name="calculate_chart">Calculate Chart</string>
+    <string name="kundali_intro">Enter your birth details to get a complete Vedic birth chart.</string>
+    <string name="kundali_empty_title">Your chart will appear here</string>
+    <string name="kundali_empty_subtitle">Fill in birth details above and tap "Calculate Chart".</string>
+    <string name="kundali_disclaimer">Planetary positions are calculated using Jean Meeus algorithms (Lahiri Ayanamsa). Accuracy ~1–2°.</string>
+    <string name="kundali_summary">Kundali Summary</string>
+    <string name="born">Born</string>
+    <string name="lagna_rising">Lagna (Rising Sign)</string>
+    <string name="sun_sign_rashi">Sun Sign (Rashi)</string>
+    <string name="moon_sign_chandra">Moon Sign (Chandra)</string>
+    <string name="chart_insights">Chart Insights</string>
+    <string name="planetary_positions">Planetary Positions (Navagraha)</string>
+    <string name="planet_col">Planet</string>
+    <string name="sign_col">Sign</string>
+    <string name="deg_col">Deg</string>
+    <string name="house_col">H</string>
+    <string name="nakshatra_col">Nakshatra</string>
+    <string name="nakshatra_lord">Lord</string>
+    <string name="birth_chart">Birth Chart</string>
+    <string name="lagna">Lagna</string>
+    <string name="retrograde">(R)</string>
+    <string name="enter_location">Enter location name</string>
+    <string name="search">Search</string>
+    <string name="location_not_found">Location not found</string>
+    <string name="enter_location_manually">Type location</string>
+    <string name="chart_style_north">North Indian</string>
+    <string name="chart_style_south">South Indian</string>
+    <string name="navamsha_chart">Navamsha (D-9)</string>
+    <string name="navamsha_subtitle">Marriage, spouse &amp; spirituality</string>
+    <string name="navamsha_lagna">Navamsha Lagna</string>
+    <string name="d1_sign">Birth Sign</string>
+    <string name="d9_sign">Navamsha</string>
+    <string name="vimshottari_dasha">Vimshottari Dasha</string>
+    <string name="mahadasha">Mahadasha</string>
+    <string name="antardasha">Antardasha</string>
+    <string name="current_period">Current Period</string>
+    <string name="dasha_starts">Starts</string>
+    <string name="dasha_ends">Ends</string>
+    <string name="years_short">yrs</string>
+
+    <!-- Choghadiya & Hora -->
+    <string name="choghadiya">Choghadiya</string>
+    <string name="hora">Hora (Planetary Hour)</string>
+    <string name="current_hora">Current Hora</string>
+    <string name="now_badge">Now</string>
+    <string name="prahar_label">Prahar</string>
 </resources>
