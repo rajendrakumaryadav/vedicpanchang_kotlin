@@ -7,69 +7,63 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
- * Location-aware eclipse detection.
+ * Global eclipse detection — reports every eclipse that occurs on the given date,
+ * regardless of whether it is visible from the observer's location.
  *
  * Two improvements over a simple tithi-index check:
  *
  * 1. Precise timing — the exact opposition (Purnima) or conjunction (Amavasya) is found via
- *    binary search, so the eclipse fires only on the correct local calendar day, never ±1 day.
+ *    binary search (50 iterations, ~nanosecond precision), so the eclipse fires only on the
+ *    correct local calendar day, never ±1 day.
  *
- * 2. Observer visibility — a lunar eclipse requires the moon to be above the horizon;
- *    a solar eclipse requires the sun to be above the horizon at the observer's location.
+ * 2. Geometric filter — the moon's ecliptic latitude at the moment of opposition/conjunction
+ *    must be within the umbral/penumbral shadow cone (Meeus Ch. 54 thresholds). This prevents
+ *    false positives on every Purnima/Amavasya.
  *
- * Latitude thresholds from Meeus "Astronomical Algorithms" Ch. 54.
+ * Visibility (altitude above horizon) is intentionally NOT checked: Vedic panchang treats an
+ * eclipse as a global astronomical event that affects the entire tithi, regardless of local
+ * horizon visibility.
  */
 object EclipseCalculator {
 
-    private const val LUNAR_ECLIPSE_LAT_LIMIT = 1.55   // penumbral + umbral
-    private const val SOLAR_ECLIPSE_LAT_LIMIT = 1.60   // partial + annular + total
+    // Meeus "Astronomical Algorithms" Ch. 54 — penumbral + partial + total/annular
+    private const val LUNAR_ECLIPSE_LAT_LIMIT = 1.57   // degrees; penumbral shadow limit
+    private const val SOLAR_ECLIPSE_LAT_LIMIT = 1.57   // degrees; partial eclipse limit
 
     private const val PURNIMA_INDEX  = 14   // Full Moon  → Lunar Eclipse
     private const val AMAVASYA_INDEX = 29   // New Moon   → Solar Eclipse
 
     /**
-     * Returns true when a lunar eclipse is possible on [date] as seen from [lat]/[lon].
+     * Returns true when a lunar eclipse occurs on [date].
      *
      * Requires:
      *  - tithi within ±1 of Purnima (tolerates limbTime offset from exact opposition)
-     *  - exact opposition falls on the observer's local [date]
-     *  - moon's ecliptic latitude at opposition is below the penumbral threshold
-     *  - moon is above the horizon at [lat]/[lon] at the time of opposition
+     *  - exact opposition falls on the local [date] (device timezone)
+     *  - moon's ecliptic latitude at opposition is within the penumbral shadow cone
      */
-    fun isLunarEclipse(
-        jd: Double, tithiIndex: Int,
-        lat: Double, lon: Double,
-        date: LocalDate
-    ): Boolean {
+    fun isLunarEclipse(jd: Double, tithiIndex: Int, date: LocalDate): Boolean {
         if (tithiIndex !in (PURNIMA_INDEX - 1)..(PURNIMA_INDEX + 1)) return false
         val purnimaJd = findExactOpposition(jd) ?: return false
         if (abs(AstronomyService.moonLatitude(purnimaJd)) >= LUNAR_ECLIPSE_LAT_LIMIT) return false
-        if (!isSameLocalDate(purnimaJd, date)) return false
-        return AstronomyService.moonAltitude(purnimaJd, lat, lon) > 0.0
+        return isSameLocalDate(purnimaJd, date)
     }
 
     /**
-     * Returns true when a solar eclipse is possible on [date] as seen from [lat]/[lon].
+     * Returns true when a solar eclipse occurs on [date].
      *
      * Requires:
      *  - tithi within ±1 of Amavasya (tolerates limbTime offset from exact conjunction)
-     *  - exact conjunction falls on the observer's local [date]
-     *  - moon's ecliptic latitude at conjunction is below the solar threshold
-     *  - sun is above the horizon at [lat]/[lon] at the time of conjunction
+     *  - exact conjunction falls on the local [date] (device timezone)
+     *  - moon's ecliptic latitude at conjunction is within the partial-eclipse shadow cone
      */
-    fun isSolarEclipse(
-        jd: Double, tithiIndex: Int,
-        lat: Double, lon: Double,
-        date: LocalDate
-    ): Boolean {
+    fun isSolarEclipse(jd: Double, tithiIndex: Int, date: LocalDate): Boolean {
         val nearAmavasya = tithiIndex == AMAVASYA_INDEX ||
                            tithiIndex == AMAVASYA_INDEX - 1 ||
                            tithiIndex == 0   // Amavasya ended before limbTime → now Shukla Pratipada
         if (!nearAmavasya) return false
         val conjunctionJd = findExactConjunction(jd) ?: return false
         if (abs(AstronomyService.moonLatitude(conjunctionJd)) >= SOLAR_ECLIPSE_LAT_LIMIT) return false
-        if (!isSameLocalDate(conjunctionJd, date)) return false
-        return AstronomyService.sunAltitude(conjunctionJd, lat, lon) > 0.0
+        return isSameLocalDate(conjunctionJd, date)
     }
 
     // ─── Binary search helpers ────────────────────────────────────────────────
