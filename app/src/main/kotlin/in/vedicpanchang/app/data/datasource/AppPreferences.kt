@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import `in`.vedicpanchang.app.l10n.AppStrings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -42,7 +43,7 @@ class AppPreferences @Inject constructor(
 
     val locale: Flow<String> = context.dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { it[Keys.LOCALE] ?: "en" }
+        .map { it[Keys.LOCALE] ?: AppStrings.DEFAULT_LOCALE }
 
     suspend fun setLocale(locale: String) {
         context.dataStore.edit { it[Keys.LOCALE] = locale }

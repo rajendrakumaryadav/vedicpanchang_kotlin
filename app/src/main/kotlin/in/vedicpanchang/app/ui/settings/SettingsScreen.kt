@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.Help
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -60,6 +59,9 @@ import `in`.vedicpanchang.app.ui.theme.AppColors
 import `in`.vedicpanchang.app.ui.theme.AppTextStyles
 import `in`.vedicpanchang.app.viewmodel.SettingsViewModel
 
+private val defaultStrings = AppStrings.of(AppStrings.DEFAULT_LOCALE)
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -74,7 +76,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(strings["settings"] ?: "Settings") },
+                title = { Text(strings["settings"] ?: defaultStrings["settings"]!!) },
                 navigationIcon = {
                     if (navController.previousBackStackEntry != null) {
                         IconButton(onClick = { navController.popBackStack() }) {
@@ -87,25 +89,35 @@ fun SettingsScreen(
         bottomBar = { AppBottomNav(navController = navController, strings = strings) }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Theme
             item {
-                SectionHeader(strings["theme"] ?: "Theme")
+                SectionHeader(strings["theme"] ?: defaultStrings["theme"]!!)
                 Spacer(Modifier.height(8.dp))
                 SettingsCard {
                     Center {
                         SingleChoiceSegmentedButtonRow {
-                            listOf("system" to (strings["theme_system"] ?: "System"),
-                                   "light"  to (strings["theme_light"] ?: "Light"),
-                                   "dark"   to (strings["theme_dark"] ?: "Dark")).forEachIndexed { idx, (key, label) ->
+                            listOf(
+                                "system" to (strings["theme_system"]
+                                    ?: defaultStrings["theme_system"]!!),
+                                "light" to (strings["theme_light"]
+                                    ?: defaultStrings["theme_light"]!!),
+                                "dark" to (strings["theme_dark"] ?: defaultStrings["theme_dark"]!!)
+                            ).forEachIndexed { idx, (key, label) ->
                                 SegmentedButton(
                                     selected = themeMode == key,
                                     onClick = { settingsVm.setThemeMode(key) },
                                     shape = SegmentedButtonDefaults.itemShape(idx, 3),
-                                    colors = SegmentedButtonDefaults.colors(activeContainerColor = AppColors.Primary.copy(alpha = 0.2f), activeContentColor = AppColors.Primary)
+                                    colors = SegmentedButtonDefaults.colors(
+                                        activeContainerColor = AppColors.Primary.copy(
+                                            alpha = 0.2f
+                                        ), activeContentColor = AppColors.Primary
+                                    )
                                 ) { Text(label, style = AppTextStyles.labelSmall) }
                             }
                         }
@@ -115,14 +127,21 @@ fun SettingsScreen(
 
             // Language
             item {
-                SectionHeader(strings["language"] ?: "Language")
+                SectionHeader(strings["language"] ?: defaultStrings["language"]!!)
                 Spacer(Modifier.height(8.dp))
                 SettingsCard {
                     ListTile(
                         leading = { Text("🌐", style = AppTextStyles.bodyLarge) },
-                        title = strings["select_language"] ?: "Select Language",
-                        subtitle = AppStrings.LOCALE_DISPLAY_NAMES[locale] ?: "English",
-                        trailing = { Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        title = strings["select_language"] ?: defaultStrings["select_language"]!!,
+                        subtitle = AppStrings.LOCALE_DISPLAY_NAMES[locale]
+                            ?: AppStrings.LOCALE_DISPLAY_NAMES[AppStrings.DEFAULT_LOCALE]!!,
+                        trailing = {
+                            Icon(
+                                Icons.Outlined.ChevronRight,
+                                null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         onClick = { showLangSheet = true }
                     )
                 }
@@ -130,24 +149,56 @@ fun SettingsScreen(
 
             // Notifications
             item {
-                SectionHeader(strings["notifications"] ?: "Notifications")
+                SectionHeader(strings["notifications"] ?: defaultStrings["notifications"]!!)
                 Spacer(Modifier.height(8.dp))
                 SettingsCard {
-                    SettingSwitch(label = strings["ekadashi"] ?: "Ekadashi", subtitle = strings["notify_ekadashi"] ?: "", checked = notifSettings.ekadashi, onCheckedChange = { settingsVm.toggleEkadashi(it) })
-                    SettingSwitch(label = strings["purnima_label"] ?: "Purnima", subtitle = strings["notify_purnima"] ?: "", checked = notifSettings.purnima, onCheckedChange = { settingsVm.togglePurnima(it) })
-                    SettingSwitch(label = strings["amavasya_label"] ?: "Amavasya", subtitle = strings["notify_amavasya"] ?: "", checked = notifSettings.amavasya, onCheckedChange = { settingsVm.toggleAmavasya(it) })
-                    SettingSwitch(label = strings["major_festivals"] ?: "Major Festivals", subtitle = strings["notify_festivals"] ?: "", checked = notifSettings.festivals, onCheckedChange = { settingsVm.toggleFestivals(it) })
+                    SettingSwitch(
+                        label = strings["ekadashi"] ?: defaultStrings["ekadashi"]!!,
+                        subtitle = strings["notify_ekadashi"]
+                            ?: defaultStrings["notify_ekadashi"]!!,
+                        checked = notifSettings.ekadashi,
+                        onCheckedChange = { settingsVm.toggleEkadashi(it) })
+                    SettingSwitch(
+                        label = strings["purnima_label"] ?: defaultStrings["purnima_label"]!!,
+                        subtitle = strings["notify_purnima"] ?: defaultStrings["notify_purnima"]!!,
+                        checked = notifSettings.purnima,
+                        onCheckedChange = { settingsVm.togglePurnima(it) })
+                    SettingSwitch(
+                        label = strings["amavasya_label"] ?: defaultStrings["amavasya_label"]!!,
+                        subtitle = strings["notify_amavasya"]
+                            ?: defaultStrings["notify_amavasya"]!!,
+                        checked = notifSettings.amavasya,
+                        onCheckedChange = { settingsVm.toggleAmavasya(it) })
+                    SettingSwitch(
+                        label = strings["major_festivals"] ?: defaultStrings["major_festivals"]!!,
+                        subtitle = strings["notify_festivals"]
+                            ?: defaultStrings["notify_festivals"]!!,
+                        checked = notifSettings.festivals,
+                        onCheckedChange = { settingsVm.toggleFestivals(it) })
                 }
             }
 
             // Reminder timing
             item {
-                SectionHeader(strings["reminder_timing"] ?: "Reminder Timing")
+                SectionHeader(strings["reminder_timing"] ?: defaultStrings["reminder_timing"]!!)
                 Spacer(Modifier.height(8.dp))
                 SettingsCard {
-                    SettingSwitch(label = strings["3_days_before"] ?: "3 Days Before", subtitle = strings["remind_3_days"] ?: "", checked = notifSettings.days3, onCheckedChange = { settingsVm.toggle3Days(it) })
-                    SettingSwitch(label = strings["1_day_before"] ?: "1 Day Before", subtitle = strings["remind_1_day"] ?: "", checked = notifSettings.day1, onCheckedChange = { settingsVm.toggle1Day(it) })
-                    SettingSwitch(label = strings["on_the_day"] ?: "On the Day", subtitle = strings["remind_same_day"] ?: "", checked = notifSettings.sameDay, onCheckedChange = { settingsVm.toggleSameDay(it) })
+                    SettingSwitch(
+                        label = strings["3_days_before"] ?: defaultStrings["3_days_before"]!!,
+                        subtitle = strings["remind_3_days"] ?: defaultStrings["remind_3_days"]!!,
+                        checked = notifSettings.days3,
+                        onCheckedChange = { settingsVm.toggle3Days(it) })
+                    SettingSwitch(
+                        label = strings["1_day_before"] ?: defaultStrings["1_day_before"]!!,
+                        subtitle = strings["remind_1_day"] ?: defaultStrings["remind_1_day"]!!,
+                        checked = notifSettings.day1,
+                        onCheckedChange = { settingsVm.toggle1Day(it) })
+                    SettingSwitch(
+                        label = strings["on_the_day"] ?: defaultStrings["on_the_day"]!!,
+                        subtitle = strings["remind_same_day"]
+                            ?: defaultStrings["remind_same_day"]!!,
+                        checked = notifSettings.sameDay,
+                        onCheckedChange = { settingsVm.toggleSameDay(it) })
                 }
             }
 
@@ -155,10 +206,22 @@ fun SettingsScreen(
             item {
                 SettingsCard {
                     ListTile(
-                        leading = { Icon(Icons.AutoMirrored.Outlined.Help, null, tint = AppColors.Primary) },
-                        title = strings["help"] ?: "Help",
-                        subtitle = strings["help_subtitle"] ?: "Understand parameters and calculations",
-                        trailing = { Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        leading = {
+                            Icon(
+                                Icons.AutoMirrored.Outlined.Help,
+                                null,
+                                tint = AppColors.Primary
+                            )
+                        },
+                        title = strings["help"] ?: defaultStrings["help"]!!,
+                        subtitle = strings["help_subtitle"] ?: defaultStrings["help_subtitle"]!!,
+                        trailing = {
+                            Icon(
+                                Icons.Outlined.ChevronRight,
+                                null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         onClick = { navController.navigate(NavRoutes.HELP) }
                     )
                 }
@@ -169,8 +232,9 @@ fun SettingsScreen(
                 SettingsCard {
                     ListTile(
                         leading = { Text("ℹ️", style = AppTextStyles.bodyLarge) },
-                        title = "${strings["version"] ?: "Version"} ${settingsVm.appVersion}",
-                        subtitle = strings["calc_description"] ?: "Jean Meeus Astronomical Algorithms + Vedic corrections",
+                        title = "${strings["version"] ?: defaultStrings["version"]!!} ${settingsVm.appVersion}",
+                        subtitle = strings["calc_description"]
+                            ?: defaultStrings["calc_description"]!!,
                         trailing = null,
                         onClick = {}
                     )
@@ -184,7 +248,7 @@ fun SettingsScreen(
     if (showLangSheet) {
         LanguageBottomSheet(
             currentLocale = locale,
-            onLocaleSelected = { 
+            onLocaleSelected = {
                 settingsVm.setLocale(it)
                 showLangSheet = false
             },
@@ -207,7 +271,13 @@ fun LanguageBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) }
+        dragHandle = {
+            BottomSheetDefaults.DragHandle(
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.4f
+                )
+            )
+        }
     ) {
         Column(
             modifier = Modifier
@@ -216,14 +286,14 @@ fun LanguageBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                strings["select_language"] ?: "Select Language",
+                strings["select_language"] ?: defaultStrings["select_language"]!!,
                 style = AppTextStyles.displaySmall.copy(fontSize = 18.sp),
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
             val languages = listOf(
-                Triple("en", "English", "English — Default"),
-                Triple("hi", "हिन्दी", "हिन्दी — Hindi"),
+                Triple("hi", "हिन्दी", "हिन्दी — Default"),
+                Triple("en", "English", "English"),
                 Triple("sa", "संस्कृतम्", "संस्कृतम् — Sanskrit")
             )
 
@@ -251,7 +321,11 @@ fun LanguageOption(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isSelected) AppColors.Primary.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .background(
+                if (isSelected) AppColors.Primary.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surfaceVariant.copy(
+                    alpha = 0.3f
+                )
+            )
             .border(
                 width = 1.dp,
                 color = if (isSelected) AppColors.Primary else Color.Transparent,
@@ -272,7 +346,10 @@ fun LanguageOption(
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(nativeName, style = AppTextStyles.labelLarge)
-                Text(englishName, style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                Text(
+                    englishName,
+                    style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                )
             }
         }
     }
@@ -288,7 +365,8 @@ fun SectionHeader(title: String) {
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
     ) { content() }
@@ -296,7 +374,12 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 
 @Composable
 fun Center(content: @Composable () -> Unit) {
-    Box(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 16.dp), contentAlignment = Alignment.Center) { content() }
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 16.dp),
+        contentAlignment = Alignment.Center
+    ) { content() }
 }
 
 @Composable
@@ -308,7 +391,10 @@ fun ListTile(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leading()
@@ -322,9 +408,16 @@ fun ListTile(
 }
 
 @Composable
-fun SettingSwitch(label: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun SettingSwitch(
+    label: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
@@ -334,7 +427,10 @@ fun SettingSwitch(label: String, subtitle: String, checked: Boolean, onCheckedCh
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppColors.Primary)
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = AppColors.Primary
+            )
         )
     }
 }

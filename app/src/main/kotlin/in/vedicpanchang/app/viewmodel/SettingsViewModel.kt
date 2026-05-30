@@ -39,19 +39,19 @@ class SettingsViewModel @Inject constructor(
     // ── Locale ────────────────────────────────────────────────────────────────
 
     val locale: StateFlow<String> = preferences.locale
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "en")
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppStrings.DEFAULT_LOCALE)
 
     val strings: StateFlow<Map<String, String>> = preferences.locale
         .map { AppStrings.of(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AppStrings.of("en"))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppStrings.of(AppStrings.DEFAULT_LOCALE))
 
     val panchangLocalizer: StateFlow<PanchangLocalizer> = preferences.locale
         .map { PanchangLocalizer(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, PanchangLocalizer("en"))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PanchangLocalizer(AppStrings.DEFAULT_LOCALE))
 
     val horoscopeLocalizer: StateFlow<HoroscopeLocalizer> = preferences.locale
         .map { HoroscopeLocalizer(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, HoroscopeLocalizer("en"))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, HoroscopeLocalizer(AppStrings.DEFAULT_LOCALE))
 
     fun setLocale(locale: String) {
         viewModelScope.launch { preferences.setLocale(locale) }
