@@ -9,8 +9,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
@@ -20,6 +23,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -321,7 +326,8 @@ private fun BirthInputForm(
     var locationQuery by remember { mutableStateOf("") }
     var selectedLat by remember { mutableDoubleStateOf(28.6139) }
     var selectedLon by remember { mutableDoubleStateOf(77.2090) }
-    var selectedCity by remember { mutableStateOf("New Delhi") }
+    var selectedCity by remember { mutableStateOf("New Delhi, India") }
+    var showLocationSearch by remember { mutableStateOf(false) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -332,11 +338,20 @@ private fun BirthInputForm(
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
     val timePickerState = rememberTimePickerState(initialHour = tobHour, initialMinute = tobMinute, is24Hour = true)
 
-    if (searchState is LocationSearchState.Found) {
-        selectedLat = searchState.location.latitude
-        selectedLon = searchState.location.longitude
-        selectedCity = searchState.location.displayName
-        LaunchedEffect(searchState) { locationQuery = searchState.location.displayName }
+    val displayDate = remember(dobYear, dobMonth, dobDay) {
+        SimpleDateFormat("d MMM yyyy", Locale.ENGLISH)
+            .format(Calendar.getInstance().apply { set(dobYear, dobMonth - 1, dobDay) }.time)
+    }
+    val displayTime = remember(tobHour, tobMinute) { "%02d:%02d".format(tobHour, tobMinute) }
+
+    LaunchedEffect(searchState) {
+        if (searchState is LocationSearchState.Found) {
+            selectedLat = searchState.location.latitude
+            selectedLon = searchState.location.longitude
+            selectedCity = searchState.location.displayName
+            locationQuery = searchState.location.displayName
+            showLocationSearch = false
+        }
     }
 
     // Date picker dialog
@@ -380,87 +395,140 @@ private fun BirthInputForm(
         )
     }
 
+    val fieldBg = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    val labelStyle = AppTextStyles.labelSmall.copy(
+        fontSize = 11.sp,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+    )
+    val valueStyle = AppTextStyles.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+
     Box(
-        modifier = Modifier.fillMaxWidth().padding(16.dp)
-            .clip(RoundedCornerShape(16.dp))
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
-        Column {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(strings["birth_details"] ?: "Birth Details", style = AppTextStyles.saffronLabel)
-            Spacer(Modifier.height(12.dp))
 
-            // Date of Birth — tappable field opens DatePickerDialog
-            Text(strings["date_of_birth"] ?: "Date of Birth", style = AppTextStyles.labelSmall)
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                OutlinedTextField(
-                    value = "%04d-%02d-%02d".format(dobYear, dobMonth, dobDay),
-                    onValueChange = {},
-                    label = { Text(strings["date_of_birth"] ?: "Date of Birth") },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    trailingIcon = { Icon(Icons.Default.CalendarMonth, null, tint = AppColors.Primary) }
-                )
-                Box(modifier = Modifier.matchParentSize().clickable { showDatePicker = true })
-            }
-            Spacer(Modifier.height(8.dp))
-
-            // Time of Birth — tappable field opens TimePickerDialog
-            Text(strings["time_of_birth"] ?: "Time of Birth", style = AppTextStyles.labelSmall)
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                OutlinedTextField(
-                    value = "%02d:%02d".format(tobHour, tobMinute),
-                    onValueChange = {},
-                    label = { Text(strings["time_of_birth"] ?: "Time of Birth") },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    trailingIcon = { Icon(Icons.Default.AccessTime, null, tint = AppColors.Primary) }
-                )
-                Box(modifier = Modifier.matchParentSize().clickable { showTimePicker = true })
-            }
-            Spacer(Modifier.height(8.dp))
-
-            // Place of birth — text field with search icon inside + GPS icon outside
-            Text(strings["place_of_birth"] ?: "Place of Birth", style = AppTextStyles.labelSmall)
+            // Date of Birth
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(fieldBg)
+                    .clickable { showDatePicker = true }
+                    .padding(horizontal = 14.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(strings["date_of_birth"] ?: "Date of Birth", style = labelStyle)
+                    Spacer(Modifier.height(2.dp))
+                    Text(displayDate, style = valueStyle)
+                }
+            }
+
+            // Time of Birth
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(fieldBg)
+                    .clickable { showTimePicker = true }
+                    .padding(horizontal = 14.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.AccessTime, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(strings["time_of_birth"] ?: "Time of Birth", style = labelStyle)
+                    Spacer(Modifier.height(2.dp))
+                    Text(displayTime, style = valueStyle)
+                }
+            }
+
+            // Place of Birth
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(fieldBg)
+                    .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(strings["place_of_birth"] ?: "Place of Birth", style = labelStyle)
+                    Spacer(Modifier.height(2.dp))
+                    Text(selectedCity, style = valueStyle, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                IconButton(
+                    onClick = { showLocationSearch = !showLocationSearch },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = strings["search"] ?: "Edit", tint = AppColors.Primary, modifier = Modifier.size(18.dp))
+                }
+                IconButton(
+                    onClick = onUseCurrentLocation,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(Icons.Default.MyLocation, contentDescription = strings["use_current_location"] ?: "GPS", tint = AppColors.Primary, modifier = Modifier.size(18.dp))
+                }
+            }
+
+            // Location search — visible when editing
+            if (showLocationSearch) {
                 OutlinedTextField(
                     value = locationQuery,
                     onValueChange = { locationQuery = it },
-                    label = { Text(strings["enter_location"] ?: "Enter name of place") },
-                    modifier = Modifier.weight(1f),
+                    label = { Text(strings["enter_location"] ?: "Search place name…") },
+                    modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     trailingIcon = {
                         if (searchState is LocationSearchState.Searching) {
                             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = AppColors.Primary)
                         } else {
                             IconButton(onClick = { onSearch(locationQuery) }) {
-                                Icon(Icons.Default.Search, contentDescription = strings["search"] ?: "Search", tint = AppColors.Primary)
+                                Icon(Icons.Default.Search, contentDescription = null, tint = AppColors.Primary)
                             }
                         }
                     }
                 )
-                IconButton(onClick = onUseCurrentLocation) {
-                    Icon(Icons.Default.MyLocation, contentDescription = strings["use_current_location"] ?: "Use current location", tint = AppColors.Primary)
+                if (searchState is LocationSearchState.NotFound) {
+                    Text(
+                        strings["location_not_found"] ?: "Not found",
+                        style = AppTextStyles.bodySmall.copy(color = AppColors.Inauspicious)
+                    )
                 }
             }
-            if (searchState is LocationSearchState.NotFound) {
-                Text(strings["location_not_found"] ?: "Not found", style = AppTextStyles.bodySmall.copy(color = AppColors.Inauspicious))
-            }
-            Spacer(Modifier.height(8.dp))
 
+            // Coordinates
+            Text(
+                "Lat: ${"%.4f".format(selectedLat)}°  Lon: ${"%.4f".format(selectedLon)}°",
+                style = AppTextStyles.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f))
+            )
+
+            // Calculate button
             Button(
                 onClick = {
-                    val cal = Calendar.getInstance().apply { set(dobYear, dobMonth - 1, dobDay, tobHour, tobMinute, 0); set(Calendar.MILLISECOND, 0) }
+                    val cal = Calendar.getInstance().apply {
+                        set(dobYear, dobMonth - 1, dobDay, tobHour, tobMinute, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
                     val birthInstant = Instant.fromEpochMilliseconds(cal.timeInMillis)
                     onCalculate(BirthDetails(birthInstant = birthInstant, latitude = selectedLat, longitude = selectedLon, locationName = selectedCity))
                 },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary),
+                shape = RoundedCornerShape(14.dp)
             ) {
+                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
                 Text(strings["calculate_chart"] ?: "Calculate Kundali Chart", style = AppTextStyles.labelLarge.copy(color = Color.White))
             }
         }
