@@ -36,12 +36,53 @@ object MuhurtaCalculator {
         return dayBlockRange(sunrise, sunset, PanchangConstants.GULIKA_BLOCKS[dayIndex])
     }
 
+    /** Varjyam (Visha Ghati) — based on Nakshatra duration. */
+    fun varjyam(nakshatraStart: Instant, nakshatraEnd: Instant, nakshatraIndex: Int): TimeRange {
+        val durationMicros = (nakshatraEnd - nakshatraStart).inWholeMicroseconds
+        val startOffsetMicros = (durationMicros * PanchangConstants.VISHA_GHATI_OFFSETS[nakshatraIndex] / 60.0).roundToLong()
+        val durationVarjyamMicros = (durationMicros * 4.0 / 60.0).roundToLong()
+        return safeRange(
+            nakshatraStart + startOffsetMicros.microseconds,
+            nakshatraStart + (startOffsetMicros + durationVarjyamMicros).microseconds
+        )
+    }
+
+    /**
+     * Durmuhurta — Inauspicious 1/15th segments of the day/night.
+     * weekday: 1=Mon..7=Sun.
+     */
+    fun durmuhurta(sunrise: Instant, sunset: Instant, nextSunrise: Instant, weekday: Int): List<TimeRange> {
+        fun d(n: Int) = dayMuhurtaRange(sunrise, sunset, n)
+        fun n(n: Int) = nightMuhurtaRange(sunset, nextSunrise, n)
+
+        return when (weekday) {
+            1 -> listOf(d(9), d(2))          // Mon
+            2 -> listOf(d(6), n(4))          // Tue
+            3 -> listOf(d(8))                // Wed
+            4 -> listOf(d(7), d(13))         // Thu
+            5 -> listOf(d(9), d(2))          // Fri
+            6 -> listOf(d(1))                // Sat
+            7 -> listOf(d(14))               // Sun
+            else -> emptyList()
+        }
+    }
+
+    private fun nightMuhurtaRange(sunset: Instant, nextSunrise: Instant, muhurtaNumber: Int): TimeRange {
+        val totalMicros = (nextSunrise - sunset).inWholeMicroseconds
+        val muhurtaMicros = (totalMicros / 15.0).roundToLong()
+        val start = sunset + (muhurtaMicros * (muhurtaNumber - 1)).microseconds
+        val end = sunset + (muhurtaMicros * muhurtaNumber).microseconds
+        return safeRange(start, end)
+    }
+
     // ─── Auspicious muhurtas ──────────────────────────────────────────────────
 
-    /** Brahma Muhurta — ~96 minutes before sunrise. */
-    fun brahmaMuhurta(sunrise: Instant): TimeRange {
-        val end = sunrise - 24.minutes
-        val start = end - 48.minutes
+    /** Brahma Muhurta — 14th Muhurta of the night. */
+    fun brahmaMuhurta(sunset: Instant, nextSunrise: Instant): TimeRange {
+        val totalMicros = (nextSunrise - sunset).inWholeMicroseconds
+        val muhurtaMicros = (totalMicros / 15.0).roundToLong()
+        val start = nextSunrise - (muhurtaMicros * 2).microseconds
+        val end = nextSunrise - muhurtaMicros.microseconds
         return safeRange(start, end)
     }
 
@@ -64,17 +105,41 @@ object MuhurtaCalculator {
     fun godhuliMuhurta(sunset: Instant): TimeRange =
         safeRange(sunset - 24.minutes, sunset + 24.minutes)
 
+    /** Pradosh Kaal — first 3 Muhurtas of the night (approx 2h 24m). */
+    fun pradoshKaal(sunset: Instant, nextSunrise: Instant): TimeRange {
+        val totalMicros = (nextSunrise - sunset).inWholeMicroseconds
+        val muhurtaMicros = (totalMicros / 15.0).roundToLong()
+        return safeRange(sunset, sunset + (muhurtaMicros * 3).microseconds)
+    }
+
     /** All 15 daytime muhurtas from sunrise to sunset. */
     fun daytimeMuhurtas(sunrise: Instant, sunset: Instant): List<MuhurtaPeriod> =
         List(DAYTIME_MUHURTA_IDS.size) { index ->
             MuhurtaPeriod(DAYTIME_MUHURTA_IDS[index], dayMuhurtaRange(sunrise, sunset, index + 1))
         }
 
+    /** All 15 nighttime muhurtas from sunset to next sunrise. */
+    fun nighttimeMuhurtas(sunset: Instant, nextSunrise: Instant): List<MuhurtaPeriod> {
+        val ids = listOf(
+            "ishwara_muhurta", "ajapada_muhurta", "ahirbudhnya_muhurta", "dharanya_muhurta",
+            "brahma_muhurta_slot", "vidhatru_muhurta", "chanda_muhurta", "aditi_muhurta",
+            "jiva_muhurta", "vishnu_muhurta", "yumigadyuti_muhurta", "thyashtru_muhurta",
+            "samudra_muhurta", "brahma_muhurta", "samudra_muhurta_2" // Adjusted for common lists
+        )
+        // Note: Brahma Muhurta is specifically the 14th muhurta of the night.
+        return List(15) { index ->
+            val id = if (index == 13) "brahma_muhurta" else "night_muhurta_${index + 1}"
+            MuhurtaPeriod(id, nightMuhurtaRange(sunset, nextSunrise, index + 1))
+        }
+    }
+
     /** Commonly-used auspicious muhurtas. */
-    fun auspiciousMuhurtas(sunrise: Instant, sunset: Instant): List<MuhurtaPeriod> = listOf(
+    fun auspiciousMuhurtas(sunrise: Instant, sunset: Instant, nextSunrise: Instant): List<MuhurtaPeriod> = listOf(
+        MuhurtaPeriod("brahma_muhurta", brahmaMuhurta(sunset, nextSunrise)),
         MuhurtaPeriod("abhijit_muhurta", abhijitMuhurta(sunrise, sunset)),
         MuhurtaPeriod("vijaya_muhurta", vijayaMuhurta(sunrise, sunset)),
-        MuhurtaPeriod("godhuli_muhurta", godhuliMuhurta(sunset))
+        MuhurtaPeriod("godhuli_muhurta", godhuliMuhurta(sunset)),
+        MuhurtaPeriod("pradosh_kaal", pradoshKaal(sunset, nextSunrise))
     )
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

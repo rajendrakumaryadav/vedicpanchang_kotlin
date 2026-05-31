@@ -38,6 +38,7 @@
     <string name="abhijit_muhurta">अभिजित्मुहूर्तः</string>
     <string name="vijaya_muhurta">विजयमुहूर्तः</string>
     <string name="godhuli_muhurta">गोधूलिमुहूर्तः</string>
+    <string name="pradosh_kaal">प्रदोषकालः</string>
     <string name="day_muhurtas">दिवामुहूर्ताः</string>
     <string name="rudra_muhurta">रुद्रमुहूर्तः</string>
     <string name="ahi_muhurta">अहिमुहूर्तः</string>
@@ -57,12 +58,17 @@
     <string name="rahu_kaal">राहुकालः</string>
     <string name="yamaganda">यमगण्डः</string>
     <string name="gulika_kaal">गुलिककालः</string>
+    <string name="durmuhurta">दुर्मुहूर्तः</string>
+    <string name="varjyam">वर्ज्यम्</string>
+    <string name="durmuhurta_note">वारानुसारम् अशुभकालखण्डः</string>
+    <string name="varjyam_note">नक्षत्रान्तर्गतः अशुभकालः</string>
     <string name="auspicious_periods">शुभकालाः</string>
     <string name="inauspicious_periods">अशुभकालाः</string>
     <string name="best_meditation">ध्यानप्रार्थनायोः श्रेष्ठम्</string>
     <string name="best_beginnings">नूतनारम्भाय श्रेष्ठम्</string>
     <string name="vijaya_note">विजयसिद्ध्यर्थं शुभः</string>
     <string name="godhuli_note">सूर्यास्तसमीपे शुभः संध्याकालः</string>
+    <string name="pradosh_note">शिवपूजायै सायंसन्ध्याप्रार्थनायै च उत्तमम्</string>
     <string name="day_muhurta_note">दिवसस्य मुहूर्तभागः</string>
     <string name="avoid_auspicious">शुभकार्याणि परिहरत</string>
     <string name="period_yama">यमकालः — अशुभः</string>

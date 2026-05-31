@@ -38,6 +38,7 @@
     <string name="abhijit_muhurta">अभिजित मुहूर्त</string>
     <string name="vijaya_muhurta">विजय मुहूर्त</string>
     <string name="godhuli_muhurta">गोधूलि मुहूर्त</string>
+    <string name="pradosh_kaal">प्रदोष काल</string>
     <string name="day_muhurtas">दिवसीय मुहूर्त</string>
     <string name="rudra_muhurta">रुद्र मुहूर्त</string>
     <string name="ahi_muhurta">अहि मुहूर्त</string>
@@ -57,12 +58,17 @@
     <string name="rahu_kaal">राहु काल</string>
     <string name="yamaganda">यमगण्ड</string>
     <string name="gulika_kaal">गुलिक काल</string>
+    <string name="durmuhurta">दुर्मुहूर्त</string>
+    <string name="varjyam">वर्ज्यम</string>
+    <string name="durmuhurta_note">वार के अनुसार अशुभ समय खंड</string>
+    <string name="varjyam_note">नक्षत्र के भीतर का अशुभ समय</string>
     <string name="auspicious_periods">शुभ काल</string>
     <string name="inauspicious_periods">अशुभ काल</string>
     <string name="best_meditation">ध्यान एवं प्रार्थना हेतु सर्वोत्तम</string>
     <string name="best_beginnings">नई शुरुआत हेतु सर्वोत्तम</string>
     <string name="vijaya_note">विजय और सफलता हेतु शुभ</string>
     <string name="godhuli_note">सूर्यास्त के आसपास का शुभ संध्याकाल</string>
+    <string name="pradosh_note">शिव पूजा और संध्या प्रार्थनाओं के लिए आदर्श।</string>
     <string name="day_muhurta_note">दिन का मुहूर्त खंड</string>
     <string name="avoid_auspicious">शुभ कार्य टालें</string>
     <string name="period_yama">यम काल — अशुभ</string>

@@ -327,6 +327,7 @@ private fun AuspiciousMuhurtasCard(
     val cardShape = RoundedCornerShape(20.dp)
     val vijaya = panchang.auspiciousMuhurtas.find { it.id == "vijaya_muhurta" }?.range
     val godhuli = panchang.auspiciousMuhurtas.find { it.id == "godhuli_muhurta" }?.range
+    val pradosh = panchang.auspiciousMuhurtas.find { it.id == "pradosh_kaal" }?.range
     val now = remember { Clock.System.now() }
 
     Column(
@@ -353,6 +354,10 @@ private fun AuspiciousMuhurtasCard(
         if (godhuli != null) {
             Spacer(Modifier.height(14.dp))
             MuhurtaRow(icon = "🐄", name = strings["godhuli_muhurta"] ?: "Godhuli Muhurta",  desc = strings["godhuli_note"] ?: "Auspicious twilight window",         range = godhuli,                 barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark, isCurrent = now in godhuli.start..godhuli.end)
+        }
+        if (pradosh != null) {
+            Spacer(Modifier.height(14.dp))
+            MuhurtaRow(icon = "🕉️", name = strings["pradosh_kaal"] ?: "Pradosh Kaal",    desc = strings["pradosh_note"] ?: "Ideal for Shiva Puja",              range = pradosh,                 barColor = AppColors.Auspicious, timeColor = AppColors.Auspicious, localizer = localizer, isDark = isDark, isCurrent = now in pradosh.start..pradosh.end)
         }
     }
 }
@@ -389,6 +394,16 @@ private fun InauspiciousPeriodsCard(
         MuhurtaRow(icon = "💀", name = strings["yamaganda"] ?: "Yamaganda",     desc = strings["period_yama"] ?: "Period of Yama — inauspicious",    range = panchang.yamaganda,  barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark, isCurrent = now in panchang.yamaganda.start..panchang.yamaganda.end)
         Spacer(Modifier.height(14.dp))
         MuhurtaRow(icon = "🪐", name = strings["gulika_kaal"] ?: "Gulika Kaal", desc = strings["saturn_period"] ?: "Saturn's inauspicious period",   range = panchang.gulikaKaal, barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark, isCurrent = now in panchang.gulikaKaal.start..panchang.gulikaKaal.end)
+        
+        // Add Durmuhurta and Varjyam
+        panchang.durmuhurtas.forEach { range ->
+            Spacer(Modifier.height(14.dp))
+            MuhurtaRow(icon = "🚫", name = strings["durmuhurta"] ?: "Durmuhurta", desc = strings["durmuhurta_note"] ?: "Inauspicious segments", range = range, barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark, isCurrent = now in range.start..range.end)
+        }
+        panchang.varjyams.forEach { range ->
+            Spacer(Modifier.height(14.dp))
+            MuhurtaRow(icon = "🛑", name = strings["varjyam"] ?: "Varjyam", desc = strings["varjyam_note"] ?: "Inauspicious Nakshatra window", range = range, barColor = AppColors.Inauspicious, timeColor = AppColors.Inauspicious, localizer = localizer, isDark = isDark, isCurrent = now in range.start..range.end)
+        }
     }
 }
 
@@ -460,12 +475,20 @@ private fun MuhurtaRow(
             Text(desc, style = AppTextStyles.bodySmall.copy(color = textSecondary, fontSize = 11.sp))
         }
         Spacer(Modifier.width(8.dp))
-        Text(
-            timeStr,
-            style = AppTextStyles.timeSmall.copy(
-                color = timeColor, fontWeight = FontWeight.Bold, fontSize = 12.sp
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                timeStr,
+                style = AppTextStyles.timeSmall.copy(
+                    color = timeColor, fontWeight = FontWeight.Bold, fontSize = 12.sp
+                )
             )
-        )
+            val sSec = range.start.toLocalDateTime(tz).second
+            val eSec = range.end.toLocalDateTime(tz).second
+            Text(
+                localizer.numerals("%02ds – %02ds".format(sSec, eSec)),
+                style = AppTextStyles.labelSmall.copy(color = timeColor.copy(alpha = 0.5f), fontSize = 9.sp)
+            )
+        }
     }
 }
 

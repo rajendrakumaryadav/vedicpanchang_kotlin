@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
@@ -44,6 +45,11 @@ fun SunMoonCard(
     locale: String
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val bgGradient = if (isDark)
+        Brush.linearGradient(listOf(Color(0xFF1F1B2E), Color(0xFF2A1F3D)))
+    else
+        Brush.linearGradient(listOf(Color(0xFFFEFDFB), Color(0xFFF5E6D3)))
+
     val cardBorderColor = if (isDark) AppColors.Primary.copy(alpha = 0.45f) else Color(0xFFCBA35C).copy(alpha = 0.55f)
     val cardShape = RoundedCornerShape(24.dp)
 
@@ -59,7 +65,7 @@ fun SunMoonCard(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(cardShape)
             .border(1.dp, cardBorderColor, cardShape)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(bgGradient)
             .padding(16.dp)
     ) {
         Column {

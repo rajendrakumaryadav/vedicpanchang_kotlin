@@ -242,7 +242,8 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (isDark) AppColors.Card else colors.background)
+                    .background(if (isDark) AppColors.NightSkyEnd else colors.background)
+                    .statusBarsPadding()
                     .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
             ) {
                 Row(
@@ -283,6 +284,7 @@ fun HomeHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
     ) {
         // Row 1: Share + Settings icons — right-aligned

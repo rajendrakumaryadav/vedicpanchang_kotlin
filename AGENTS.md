@@ -6,140 +6,69 @@ This repository uses **specification-driven development**. Specs are the source 
 
 The project is organized into the following main directories and modules:
 
-- **app/**: Android application module containing all user-facing code and resources.
-  - `src/main/kotlin/in/vedicpanchang/app/`: Main application logic, including:
-    - `ui/`: User interface components and screens
-    - `viewmodel/`: ViewModel classes for UI state management
-    - `service/`: Android services
-    - `receiver/`: Broadcast receivers
-    - `di/`: Dependency injection setup
-    - `l10n/`: Localization and language support
-    - `widget/`: App widgets
-    - `data/`: Data models and repositories
-  - `src/main/res/`: Android resources (layouts, drawables, values, etc.)
-  - `AndroidManifest.xml`: App manifest
+### 1. `:astronomy` (Core Calculation Engine)
+A Kotlin Multiplatform module containing pure logic for astronomical calculations. This module must remain free of Android dependencies.
 
-- **astronomy/**: Core calculation and business logic for Panchang and astrology features.
-  - `src/commonMain/kotlin/in/vedicpanchang/astronomy/`: Core calculators and planetary logic:
-    - `AstronomyService.kt`: Service entry point
-    - `PanchangCalculators.kt`, `ChoghadiyaCalculator.kt`, `HoraCalculator.kt`, `MuhurtaCalculator.kt`: Calculation modules
-    - `PlanetaryPositions.kt`, `TimeRange.kt`: Astronomical data structures
+*   **Package: `in.vedicpanchang.astronomy`**
+    *   `AstronomyService.kt`: The main facade for all calculations. Aggregates data from various calculators.
+    *   `PanchangCalculators.kt`: Logic for Tithi, Nakshatra, Yoga, Karana, and Vara.
+    *   `PlanetaryPositions.kt`: Calculates longitudes and latitudes of planets (Sun, Moon, etc.) for a given time and location.
+    *   `ChoghadiyaCalculator.kt`: Calculates day and night Choghadiya periods based on sunrise/sunset.
+    *   `HoraCalculator.kt`: Calculates planetary hours (Hora) for the day.
+    *   `MuhurtaCalculator.kt`: Logic for Rahu Kaal, Gulika Kaal, Yamaganda, and Abhijit Muhurta.
+    *   `EclipseCalculator.kt`: Solar and lunar eclipse predictions.
+    *   `TimeRange.kt`: Data model representing a start and end time.
+    *   `PanchangConstants.kt`: Astronomical constants and planet/sign indices.
 
-- **images/**: App icons and graphics used throughout the UI.
+### 2. `:app` (Android Application)
+Contains the UI (Jetpack Compose), ViewModels, and Android-specific services.
 
-- **keys/**: Keystore, signing certificates, and related security files (not for source control).
+*   **Package: `in.vedicpanchang.app`**
+    *   `MainActivity.kt`: Entry point, sets up Compose Navigation and Hilt.
+    *   `VedicPanchangApp.kt`: Application class, initializes Hilt.
 
-- **specs/**: Specification documents for all features and changes, following the spec-driven workflow.
+*   **Package: `in.vedicpanchang.app.data`**
+    *   **`datasource`**:
+        *   `AppPreferences.kt`: Manages user settings (language, theme, chart style) via DataStore.
+        *   `FestivalData.kt`: Static or JSON-based dataset of Hindu festivals.
+        *   **`db`**: Room database for calendar notes (`NoteDatabase.kt`, `NoteEntity.kt`, `NoteDao.kt`).
+    *   **`model`**: Data models for UI state (`PanchangModel.kt`, `HoroscopeModel.kt`, `FestivalModel.kt`, `CustomCalendarNote.kt`).
 
-- **build/**, **gradle/**: Build outputs, scripts, and Gradle configuration (including version catalogs and wrapper).
+*   **Package: `in.vedicpanchang.app.viewmodel`**
+    *   `PanchangViewModel.kt`: Manages state for Home and Day Detail screens.
+    *   `HoroscopeViewModel.kt`: Calculates and holds Kundali data and Dasha info.
+    *   `CalendarViewModel.kt`: Logic for monthly view and local notes.
+    *   `SettingsViewModel.kt`: UI logic for updating user preferences.
 
-- **README.md**, **AGENTS.md**, etc.: Project documentation and agent workflow guides.
+*   **Package: `in.vedicpanchang.app.ui`** (Jetpack Compose)
+    *   **`home`**: `HomeScreen.kt` and cards: `TodayPanchangCard.kt`, `ChoghadiyaCard.kt`, `HoraCard.kt`, `SunMoonCard.kt`, `UpcomingEventsCard.kt`.
+    *   **`horoscope`**: `HoroscopeScreen.kt`, `NorthIndianChart.kt`, `SouthIndianChart.kt`, `DashaSection.kt`, `PlanetPositionsTable.kt`.
+    *   **`calendar`**: `CalendarScreen.kt` (Monthly view with date picking).
+    *   **`daydetail`**: `DayDetailScreen.kt` (Detailed breakdown of a specific day's panchang).
+    *   **`settings`**: `SettingsScreen.kt`, `HelpScreen.kt`.
+    *   **`navigation`**: `NavGraph.kt` (Routes), `AppBottomNav.kt`.
+    *   **`theme`**: `AppTheme.kt`, `AppColors.kt`, `AppTextStyles.kt`.
+
+*   **Package: `in.vedicpanchang.app.service`**
+    *   `LocationService.kt`: Handles GPS updates for accurate panchang (lat/long).
+    *   `NotificationScheduler.kt`: Uses AlarmManager for daily panchang alerts.
+    *   `NotificationService.kt`: Builds and displays the actual notification.
+    *   `ShareService.kt`: Logic for sharing panchang/kundali as text or image.
+    *   `WidgetService.kt`: Updates the home screen widget.
+
+*   **Package: `in.vedicpanchang.app.l10n`** (Localization)
+    *   `AppStrings.kt`: Typed access to string resources.
+    *   `PanchangLocalizer.kt`: Formats panchang terms based on locale (English/Hindi/Sanskrit).
+    *   `HoroscopeLocalizer.kt`: Localization for zodiac signs and planet names.
+
+*   **Package: `in.vedicpanchang.app.receiver`**
+    *   `BootReceiver.kt`: Reschedules alarms after device reboot.
+    *   `NotificationReceiver.kt`: Triggers notification display.
+
+### 3. Other Directories
+- **images/**: App icons and graphics.
+- **keys/**: Keystore and signing files (not for source control).
+- **specs/**: Specification documents for all features and changes.
+- **gradle/**: Build configuration and version catalogs (`libs.versions.toml`).
 
 This modular structure enforces a clear separation between UI/app logic and core calculation logic, supporting maintainability, testability, and onboarding for new contributors. Each module is responsible for a distinct concern, and all changes are governed by the specification-driven process described below.
-
-## Quick start (for any change)
-
-1. Create or update a spec in **/specs** and set **Status: Draft**.
-2. Get approval before coding (Status: Approved).
-3. Implement exactly what the spec defines.
-4. Validate against the acceptance criteria and update Status to Implemented.
-
-## Spec location and naming
-
-Specs live under **/specs** with a stable, ordered name:
-
-```
-specs/NNNN-short-title.md
-```
-
-Use a numeric prefix for ordering (0001, 0002, ...). Update the same file for revisions and log changes in the spec.
-
-## Spec status lifecycle
-
-Allowed statuses:
-
-- Draft
-- In Review
-- Approved
-- Implemented
-- Deprecated (optional, for superseded specs)
-
-Only Approved specs may be implemented. If scope changes, return to Draft or In Review.
-
-## Required spec sections
-
-```md
-# Spec: <short title>
-Status: Draft | In Review | Approved | Implemented | Deprecated
-Owners: <names or handles>
-
-## Goal
-What outcome are we trying to achieve?
-
-## Non-goals
-What is explicitly out of scope?
-
-## Context
-Relevant background, constraints, and dependencies.
-
-## Design
-Architecture, data flow, APIs, UI/UX notes, and key decisions.
-
-## Acceptance criteria
-Numbered, verifiable statements.
-
-## Test plan
-What to run and what to verify.
-
-## Rollout / compatibility
-Migrations, backward compatibility, feature flags.
-
-## Decision log
-Date-stamped decisions and changes.
-```
-
-## Acceptance criteria guidelines
-
-- Write criteria as **verifiable outcomes**, not implementation details.
-- Use numbering for traceability.
-- Prefer precise language: "When X, then Y" or "Given/When/Then."
-- Ensure every criterion has a corresponding test or manual verification step.
-
-## Test plan expectations
-
-- Specify the exact Gradle tasks to run.
-- Include any manual checks (UI, device behavior, migration validation).
-- If a criterion cannot be tested automatically, document the manual steps.
-
-## Traceability requirements
-
-Every change must reference its spec:
-
-- Commit message footer, PR description, or issue link must include the spec path.
-- If the change updates behavior, update the spec and README (if user-facing).
-
-## Workflow for agents
-
-1. **Draft the spec.** Fill all sections and set Status to Draft.
-2. **Seek approval.** Do not implement until Status is Approved.
-3. **Implement.** Keep code aligned to the spec and update it when decisions change.
-4. **Validate.** Ensure acceptance criteria are met and set Status to Implemented.
-
-## Kotlin/Gradle conventions
-
-- Use the Gradle wrapper for all tasks.
-- Prefer unit tests in the module where behavior is implemented.
-- Avoid introducing new modules without an approved spec.
-- Keep dependencies minimal and aligned with the version catalog.
-
-## Handling bug fixes
-
-Create a spec even for small fixes. Include:
-
-- Repro steps
-- Root cause
-- Acceptance criteria that prevent regressions
-
-## When a spec is missing
-
-If a request does not include a spec, create one and request approval before coding. Only skip the spec step if explicitly instructed.

@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +52,11 @@ fun DishasoolCard(
 ) {
     val colors = MaterialTheme.colorScheme
     val isDark = colors.background.luminance() < 0.5f
+    val bgGradient = if (isDark)
+        Brush.linearGradient(listOf(Color(0xFF1F1B2E), Color(0xFF2A1F3D)))
+    else
+        Brush.linearGradient(listOf(Color(0xFFFEFDFB), Color(0xFFF5E6D3)))
+
     val borderColor = if (isDark)
         AppColors.Primary.copy(alpha = 0.45f)
     else
@@ -69,7 +75,7 @@ fun DishasoolCard(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(cardShape)
             .border(1.dp, borderColor, cardShape)
-            .background(colors.surface)
+            .background(bgGradient)
             .padding(32.dp)
     ) {
         // Card header

@@ -53,11 +53,14 @@ data class PanchangModel(
     val abhijitMuhurta: TimeRange,
     val auspiciousMuhurtas: List<MuhurtaPeriod>,
     val daytimeMuhurtas: List<MuhurtaPeriod>,
+    val nighttimeMuhurtas: List<MuhurtaPeriod>,
 
     // Inauspicious periods
     val rahuKaal: TimeRange,
     val yamaganda: TimeRange,
     val gulikaKaal: TimeRange,
+    val durmuhurtas: List<TimeRange>,
+    val varjyams: List<TimeRange>,
 
     // Festivals / events
     val festivals: List<String>,

@@ -59,4 +59,11 @@ object PanchangConstants {
     val RAHU_KAAL_BLOCKS = listOf(8, 2, 7, 5, 6, 3, 4)
     val YAMAGANDA_BLOCKS = listOf(5, 4, 3, 2, 1, 7, 6)
     val GULIKA_BLOCKS = listOf(7, 6, 5, 4, 3, 2, 1)
+
+    /** Visha Ghati start offset (in Ghatis) for each of the 27 Nakshatras. */
+    val VISHA_GHATI_OFFSETS = listOf(
+        50, 24, 30, 40, 14, 11, 30, 20, 32, 30,
+        20, 18, 22, 20, 14, 14, 10, 14, 56, 24,
+        20, 10, 10, 18, 16, 24, 30
+    )
 }

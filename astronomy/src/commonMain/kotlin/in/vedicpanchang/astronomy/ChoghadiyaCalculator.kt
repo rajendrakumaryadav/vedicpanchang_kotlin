@@ -24,32 +24,32 @@ object ChoghadiyaCalculator {
         "Udveg" to ChoghadiyaType.INAUSPICIOUS
     )
 
-    /** Returns 7 day slots + 7 night slots. weekday: 1=Mon..7=Sun. */
+    /** Returns 8 day slots + 8 night slots. weekday: 1=Mon..7=Sun. */
     fun calculate(sunrise: Instant, sunset: Instant, weekday: Int): List<ChoghadiyaSlot> {
         val dayIndex = weekday % 7  // 0=Sun..6=Sat
 
         val dayDuration = sunset - sunrise
-        val slotDuration = dayDuration / 7
+        val slotDuration = dayDuration / 8
 
         val nextSunrise = Instant.fromEpochMilliseconds(sunrise.toEpochMilliseconds() + 86400_000L)
         val nightDuration = nextSunrise - sunset
-        val nightSlotDuration = nightDuration / 7
+        val nightSlotDuration = nightDuration / 8
 
         val slots = mutableListOf<ChoghadiyaSlot>()
 
         val dayStart = DAY_START_INDEX[dayIndex]
-        for (i in 0 until 7) {
+        for (i in 0 until 8) {
             val name = CYCLE_ORDER[(dayStart + i) % 7]
             val start = sunrise + slotDuration * i
-            val end = if (i == 6) sunset else sunrise + slotDuration * (i + 1)
+            val end = if (i == 7) sunset else sunrise + slotDuration * (i + 1)
             slots.add(ChoghadiyaSlot(name, TYPES[name]!!, start, end, true))
         }
 
         val nightStart = NIGHT_START_INDEX[dayIndex]
-        for (i in 0 until 7) {
+        for (i in 0 until 8) {
             val name = CYCLE_ORDER[(nightStart + i) % 7]
             val start = sunset + nightSlotDuration * i
-            val end = if (i == 6) nextSunrise else sunset + nightSlotDuration * (i + 1)
+            val end = if (i == 7) nextSunrise else sunset + nightSlotDuration * (i + 1)
             slots.add(ChoghadiyaSlot(name, TYPES[name]!!, start, end, false))
         }
 

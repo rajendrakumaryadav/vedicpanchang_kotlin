@@ -26,7 +26,7 @@ object AstronomyService {
 
     private const val DEG2RAD = PI / 180.0
     private const val RAD2DEG = 180.0 / PI
-    private const val SUN_RISE_SET_ALT = 0.0
+    private const val SUN_RISE_SET_ALT = -0.8333
 
     private val sunriseSunsetCache = LinkedHashMap<String, SunriseSunset>()
     private val moonriseMoonsetCache = LinkedHashMap<String, MoonriseMoonset>()
@@ -56,7 +56,19 @@ object AstronomyService {
         return julianDay(dt.year, dt.month.number, dt.day, ut)
     }
 
-    fun julianCenturies(jd: Double): Double = (jd - 2451545.0) / 36525.0
+    fun julianCenturies(jd: Double): Double {
+        val deltaT = getDeltaT(jd) / 86400.0
+        return (jd + deltaT - 2451545.0) / 36525.0
+    }
+
+    private fun julianCenturiesNoDeltaT(jd: Double): Double = (jd - 2451545.0) / 36525.0
+
+    /** Returns Delta T (TT - UT) in seconds. Approximation for 2000-2100. */
+    private fun getDeltaT(jd: Double): Double {
+        val y = 2000 + (jd - 2451545.0) / 365.25
+        val t = y - 2000
+        return 62.92 + 0.32217 * t + 0.005589 * t * t
+    }
 
     // ─── Sun Position ─────────────────────────────────────────────────────────
 
@@ -78,8 +90,19 @@ object AstronomyService {
             0.000289 * sin(3 * mRad)
 
         val sunTrueLon = l0 + centerEq
+        
+        // Add planetary perturbations (Meeus Chapter 25)
+        val a1 = normalizeAngle(153.23 + 22518.7541 * t) * DEG2RAD
+        val a2 = normalizeAngle(216.57 + 45037.5082 * t) * DEG2RAD
+        val a3 = normalizeAngle(312.69 + 32964.4670 * t) * DEG2RAD
+        val a4 = normalizeAngle(350.74 + 445267.1142 * t) * DEG2RAD
+        val a5 = normalizeAngle(231.19 + 20.20 * t) * DEG2RAD
+        
+        val p = 0.00134 * cos(a1) + 0.00154 * cos(a2) + 0.00200 * cos(a3) + 
+                0.00179 * sin(a4) + 0.00178 * sin(a5)
+
         val omega = 125.04 - 1934.136 * t
-        val apparent = sunTrueLon - 0.00569 - 0.00478 * sin(omega * DEG2RAD)
+        val apparent = sunTrueLon + p - 0.00569 - 0.00478 * sin(omega * DEG2RAD)
 
         val result = normalizeAngle(apparent)
         writeLru(sunLongitudeCache, key, result, MAX_JD_CACHE)
@@ -90,7 +113,9 @@ object AstronomyService {
         val key = jdKey(jd)
         readLru(lahiriAyanamshaCache, key)?.let { return it }
 
-        val ayan = 23.85 + (50.27 / 3600.0) * (jd - 2451545.0) / 365.25
+        // Precise Lahiri Ayanamsha (Chitra Paksha): 23° 51' 25.532" at J2000.0
+        val t = julianCenturies(jd)
+        val ayan = 23.857092 + (5029.0966 * t + 1.112 * t * t) / 3600.0
 
         val result = normalizeAngle(ayan)
         writeLru(lahiriAyanamshaCache, key, result, MAX_JD_CACHE)
@@ -144,7 +169,8 @@ object AstronomyService {
         fun sunAltitudeAt(jd: Double): Double =
             altitudeCache.getOrPut(jdKey(jd)) { sunAltitudeDegrees(jd, lat, lon) }
 
-        val jdStart = julianDay(date.year, date.month.number, date.day, 0.0)
+        // Search centered around local day to ensure we catch events in the observer's timezone
+        val jdStart = julianDay(date.year, date.month.number, date.day, 0.0) - lon / 360.0
         var riseJd: Double? = null
         var setJd: Double? = null
 
@@ -183,7 +209,7 @@ object AstronomyService {
                     fallbackSet.toEpochMilliseconds() + 86400_000L
                 )
             }
-            val result = SunriseSunset(roundToNearestMinute(fallbackRise), roundToNearestMinute(fallbackSet))
+            val result = SunriseSunset(fallbackRise, fallbackSet)
             writeLru(sunriseSunsetCache, cacheKey, result, MAX_RISE_SET_CACHE)
             return result
         }
@@ -193,7 +219,7 @@ object AstronomyService {
         if (!sunset.isAfter(sunrise)) {
             sunset = Instant.fromEpochMilliseconds(sunset.toEpochMilliseconds() + 86400_000L)
         }
-        val result = SunriseSunset(roundToNearestMinute(sunrise), roundToNearestMinute(sunset))
+        val result = SunriseSunset(sunrise, sunset)
         writeLru(sunriseSunsetCache, cacheKey, result, MAX_RISE_SET_CACHE)
         return result
     }
@@ -208,13 +234,13 @@ object AstronomyService {
         fun moonAltitudeAt(jd: Double): Double =
             altitudeCache.getOrPut(jdKey(jd)) { moonAltitudeDegrees(jd, lat, lon) }
 
-        val jdStart = julianDay(date.year, date.month.number, date.day, 0.0)
+        // Search centered around local day to ensure we catch events in the observer's timezone
+        val jdStart = julianDay(date.year, date.month.number, date.day, 0.0) - lon / 360.0
         var riseJd: Double? = null
         var setJd: Double? = null
 
-        // Refraction (~0.567°) minus standard dynamic disk semi-diameter (~0.25°) = 0.317° target horizon.
-        // Since we already subtracted variable parallax inside moonAltitudeDegrees, the threshold is +0.133°
-        val correctedMoonAltThreshold = 0.133
+        // Standard threshold for rise/set: -34' (refraction) - 16' (semi-diameter) = -50' = -0.8333°
+        val correctedMoonAltThreshold = -0.8333
 
         var prevJd = jdStart
         var prevAlt = moonAltitudeAt(prevJd)
@@ -246,8 +272,8 @@ object AstronomyService {
         val resolvedSet = setJd ?: (jdStart + 0.75)
 
         val result = MoonriseMoonset(
-            roundToNearestMinute(jdToInstant(resolvedRise)),
-            roundToNearestMinute(jdToInstant(resolvedSet))
+            jdToInstant(resolvedRise),
+            jdToInstant(resolvedSet)
         )
         writeLru(moonriseMoonsetCache, cacheKey, result, MAX_RISE_SET_CACHE)
         return result
@@ -342,7 +368,17 @@ object AstronomyService {
         sigmaL += 294 * sin(2 * dR + 3 * mpR)
         sigmaL += 3958 * sin(a1R) + 1962 * sin(lPrime * DEG2RAD - fR) + 318 * sin(a2R)
 
-        val lon = lPrime + sigmaL / 1_000_000.0
+        // Additional terms for higher precision (Meeus Table 45.A)
+        sigmaL += -991 * sin(2 * dR - mpR + mR)
+        sigmaL += -802 * sin(2 * dR + mpR - mR)
+        sigmaL += -660 * sin(2 * mpR - 2 * fR)
+        sigmaL += -632 * sin(mR + mpR - 2 * dR)
+        sigmaL += -609 * sin(3 * dR)
+        sigmaL += -556 * sin(mpR + mR - 2 * fR)
+
+        val omegaRad = (125.04 - 1934.136 * t) * DEG2RAD
+        val nutation = -0.00478 * sin(omegaRad)
+        val lon = lPrime + sigmaL / 1_000_000.0 + nutation
 
         var sigmaB = 0.0
         sigmaB += 5128122 * sin(fR)
@@ -381,13 +417,23 @@ object AstronomyService {
 
         val lat = sigmaB / 1_000_000.0
 
-        // Calculate dynamic Moon distance term perturbations (Meeus Chapter 47 radial distance components)
+        // Calculate dynamic Moon distance term perturbations (Meeus Chapter 45 radial distance components)
         var sigmaR = 0.0
         sigmaR += -58499 * cos(mpR)
         sigmaR += -46653 * cos(2 * dR - mpR)
         sigmaR += -31057 * cos(2 * dR)
         sigmaR += -11066 * cos(2 * mpR)
         sigmaR += -8505 * e * cos(mR)
+        sigmaR += -2932 * cos(2 * dR + mpR)
+        sigmaR += -2854 * e * cos(2 * dR - mR)
+        sigmaR += -2140 * e * cos(mpR - mR)
+        sigmaR += -1886 * cos(mpR + 2 * fR)
+        sigmaR += -1542 * cos(mpR - 2 * fR)
+        sigmaR += -1506 * e * cos(mpR + mR)
+        sigmaR += -1047 * cos(3 * mpR)
+        sigmaR += -923 * cos(4 * dR - mpR)
+        sigmaR += -906 * e * cos(2 * dR + mR)
+        sigmaR += -854 * cos(2 * dR - 2 * mpR)
 
         val horizontalParallaxArcSec = 3422.7000 + (sigmaR / 1000.0)
         val distanceInEarthRadii = 1.0 / sin((horizontalParallaxArcSec / 3600.0) * DEG2RAD)
@@ -477,10 +523,17 @@ object AstronomyService {
     }
 
     private fun greenwichMeanSiderealTime(jd: Double): Double {
-        val t = (jd - 2451545.0) / 36525.0
-        val theta = 280.46061837 + 360.98564736629 * (jd - 2451545.0) +
+        val t = julianCenturiesNoDeltaT(jd)
+        val gmst = 280.46061837 + 360.98564736629 * (jd - 2451545.0) +
                 0.000387933 * t * t - (t * t * t) / 38710000.0
-        return normalizeAngle(theta)
+        
+        // Equation of the Equinoxes (convert to Apparent Sidereal Time)
+        val omega = (125.04 - 1934.136 * t) * DEG2RAD
+        val epsilon = obliquityCorrection(t) * DEG2RAD
+        val deltaPsi = -0.00478 * sin(omega) // Simplify nutation for AST
+        val eqEq = deltaPsi * cos(epsilon)
+        
+        return normalizeAngle(gmst + eqEq)
     }
 
     private fun sunAltitudeDegrees(jd: Double, lat: Double, lon: Double): Double {
@@ -549,8 +602,9 @@ object AstronomyService {
 
     private fun roundToNearestMinute(instant: Instant): Instant {
         val ms = instant.toEpochMilliseconds()
-        val dt = instant.toLocalDateTime(TimeZone.UTC)
-        return Instant.fromEpochMilliseconds(ms - dt.second * 1000L - (ms % 1000L))
+        // Round to nearest minute: add 30s and truncate
+        val roundedMs = ((ms + 30000) / 60000) * 60000
+        return Instant.fromEpochMilliseconds(roundedMs)
     }
 
     private fun instantFromDayAndMinutes(date: LocalDate, minutes: Double): Instant {

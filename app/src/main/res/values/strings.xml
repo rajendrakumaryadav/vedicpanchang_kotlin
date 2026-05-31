@@ -63,6 +63,7 @@
     <string name="abhijit_muhurta">Abhijit Muhurta</string>
     <string name="vijaya_muhurta">Vijaya Muhurta</string>
     <string name="godhuli_muhurta">Godhuli Muhurta</string>
+    <string name="pradosh_kaal">Pradosh Kaal</string>
     <string name="day_muhurtas">Day Muhurtas</string>
     <string name="rudra_muhurta">Rudra Muhurta</string>
     <string name="ahi_muhurta">Ahi Muhurta</string>
@@ -85,12 +86,17 @@
     <string name="best_beginnings">Best for New Beginnings</string>
     <string name="vijaya_note">Auspicious for victory and success</string>
     <string name="godhuli_note">Auspicious twilight period near sunset</string>
+    <string name="pradosh_note">Ideal for Shiva Puja and evening prayers</string>
     <string name="day_muhurta_note">Day muhurta segment</string>
     <string name="avoid_auspicious">Avoid auspicious activities</string>
     <string name="period_yama">Yama Period — Inauspicious</string>
     <string name="saturn_period">Saturn\'s inauspicious period</string>
     <string name="yamaganda">Yamaganda</string>
     <string name="gulika_kaal">Gulika Kaal</string>
+    <string name="durmuhurta">Durmuhurta</string>
+    <string name="varjyam">Varjyam</string>
+    <string name="durmuhurta_note">Inauspicious segments based on weekday</string>
+    <string name="varjyam_note">Inauspicious window within the Nakshatra</string>
 
     <!-- Calendar -->
     <string name="go_to_today">Go to Today</string>

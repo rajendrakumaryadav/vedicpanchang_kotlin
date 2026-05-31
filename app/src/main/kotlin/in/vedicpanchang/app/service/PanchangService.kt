@@ -11,6 +11,7 @@ import kotlin.math.floor
 import kotlin.math.abs
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 /**
@@ -40,6 +41,11 @@ class PanchangService @Inject constructor() {
         val ss = AstronomyService.sunriseSunset(date, lat, lon)
         val sunrise = ss.sunrise
         val sunset = ss.sunset
+        
+        // 1b. Next Sunrise (needed for accurate night duration)
+        val nextSunrise = AstronomyService.sunriseSunset(
+            date.plus(1, DateTimeUnit.DAY), lat, lon
+        ).sunrise
 
         // 2. Determine limbTime — observation moment for the Panchang limbs.
         //    Noon-tithi rule: if the sunrise tithi ends before local noon, use noon.
@@ -98,16 +104,38 @@ class PanchangService @Inject constructor() {
         val mm = AstronomyService.moonriseMoonset(date, lat, lon)
 
         // 9. Muhurtas
-        val brahma = MuhurtaCalculator.brahmaMuhurta(sunrise)
+        val brahma = MuhurtaCalculator.brahmaMuhurta(sunset, nextSunrise)
         val abhijit = MuhurtaCalculator.abhijitMuhurta(sunrise, sunset)
         val daytimeMuhurtas = MuhurtaCalculator.daytimeMuhurtas(sunrise, sunset)
-        val auspiciousMuhurtas = MuhurtaCalculator.auspiciousMuhurtas(sunrise, sunset)
+        val nighttimeMuhurtas = MuhurtaCalculator.nighttimeMuhurtas(sunset, nextSunrise)
+        val auspiciousMuhurtas = MuhurtaCalculator.auspiciousMuhurtas(sunrise, sunset, nextSunrise)
 
         // 10. Inauspicious periods (weekday in kotlinx-datetime: Monday=1..Sunday=7)
         val weekday = date.dayOfWeek.isoDayNumber  // 1=Mon..7=Sun  (matches Dart convention)
         val rahu = MuhurtaCalculator.rahuKaal(sunrise, sunset, weekday)
         val yama = MuhurtaCalculator.yamaganda(sunrise, sunset, weekday)
         val gulika = MuhurtaCalculator.gulikaKaal(sunrise, sunset, weekday)
+        val durmuhurtas = MuhurtaCalculator.durmuhurta(sunrise, sunset, nextSunrise, weekday)
+        
+        // Improved Varjyam: find all Varjyams intersecting with this Panchang day (Sunrise to next Sunrise)
+        val varjyams = mutableListOf<TimeRange>()
+        
+        // Check current Nakshatra
+        val v1 = MuhurtaCalculator.varjyam(nakshatraStart, nakshatraEnd, nakshatraIdx)
+        if (v1.end > sunrise && v1.start < nextSunrise) varjyams.add(v1)
+        
+        // Check next Nakshatra if it starts today
+        if (nakshatraEnd < nextSunrise) {
+            val nextNakIdx = (nakshatraIdx + 1) % 27
+            val nextNakEnd = NakshatraCalculator.nakshatraEndTime(nakshatraEnd + 1.minutes, nextNakIdx)
+            val v2 = MuhurtaCalculator.varjyam(nakshatraEnd, nextNakEnd, nextNakIdx)
+            if (v2.end > sunrise && v2.start < nextSunrise) varjyams.add(v2)
+        }
+        
+        // Check previous Nakshatra if it ended after sunrise (unlikely but for safety)
+        val prevNakStart = NakshatraCalculator.nakshatraStartTime(nakshatraStart - 1.minutes, (nakshatraIdx + 26) % 27)
+        val v0 = MuhurtaCalculator.varjyam(prevNakStart, nakshatraStart, (nakshatraIdx + 26) % 27)
+        if (v0.end > sunrise && v0.start < nextSunrise) varjyams.add(v0)
 
         // 11. Festivals
         val festivals = FestivalData.getFestivals(
@@ -168,8 +196,11 @@ class PanchangService @Inject constructor() {
             moonrise = mm?.moonrise ?: Instant.DISTANT_FUTURE,
             moonset = mm?.moonset ?: Instant.DISTANT_FUTURE,
             brahmaMuhurta = brahma, abhijitMuhurta = abhijit,
-            auspiciousMuhurtas = auspiciousMuhurtas, daytimeMuhurtas = daytimeMuhurtas,
+            auspiciousMuhurtas = auspiciousMuhurtas, 
+            daytimeMuhurtas = daytimeMuhurtas,
+            nighttimeMuhurtas = nighttimeMuhurtas,
             rahuKaal = rahu, yamaganda = yama, gulikaKaal = gulika,
+            durmuhurtas = durmuhurtas, varjyams = varjyams,
             festivals = festivals,
             sunLongitude = sunLon, moonLongitude = moonLon,
             lunarMonthIndex = lunarMonthIdx,
