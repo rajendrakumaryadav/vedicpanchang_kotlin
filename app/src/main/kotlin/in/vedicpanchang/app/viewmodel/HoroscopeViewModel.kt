@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,6 +53,20 @@ class HoroscopeViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(HoroscopeScreenState())
     val state: StateFlow<HoroscopeScreenState> = _state.asStateFlow()
+
+    init {
+        prepopulateLocation()
+    }
+
+    private fun prepopulateLocation() {
+        viewModelScope.launch {
+            // Retrieve the last known location from cache to pre-populate the form
+            val cached = locationService.cachedLocation.first()
+            _state.update {
+                it.copy(locationSearch = LocationSearchState.Found(cached))
+            }
+        }
+    }
 
     // ── Chart calculation ─────────────────────────────────────────────────────
 

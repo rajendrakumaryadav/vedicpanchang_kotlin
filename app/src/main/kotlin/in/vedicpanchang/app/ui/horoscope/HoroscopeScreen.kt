@@ -328,10 +328,12 @@ private fun BirthInputForm(
     var dobDay by remember { mutableIntStateOf(1) }
     var tobHour by remember { mutableIntStateOf(12) }
     var tobMinute by remember { mutableIntStateOf(0) }
-    var locationQuery by remember { mutableStateOf("") }
-    var selectedLat by remember { mutableDoubleStateOf(28.6139) }
-    var selectedLon by remember { mutableDoubleStateOf(77.2090) }
-    var selectedCity by remember { mutableStateOf("New Delhi, India") }
+
+    val initialFound = searchState as? LocationSearchState.Found
+    var locationQuery by remember { mutableStateOf(initialFound?.location?.displayName ?: "") }
+    var selectedLat by remember { mutableDoubleStateOf(initialFound?.location?.latitude ?: 28.6139) }
+    var selectedLon by remember { mutableDoubleStateOf(initialFound?.location?.longitude ?: 77.2090) }
+    var selectedCity by remember { mutableStateOf(initialFound?.location?.displayName ?: "New Delhi, India") }
     var showLocationSearch by remember { mutableStateOf(false) }
 
     var showDatePicker by remember { mutableStateOf(false) }
