@@ -96,7 +96,7 @@ class HoroscopeViewModel @Inject constructor(
         _state.update { it.copy(isSouthIndianStyle = !it.isSouthIndianStyle) }
     }
 
-    // ── Birth place search ────────────────────────────────────────────────────
+    // ── birthplace search ────────────────────────────────────────────────────
 
     fun searchBirthPlace(query: String) {
         if (query.isBlank()) {
